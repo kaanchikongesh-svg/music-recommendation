@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Data & Model artifacts
+data/raw/*.csv
+!data/raw/songs.csv
+data/processed/*.csv
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+models/*.pkl
+!models/.gitkeep
+
+# Database
+database/*.db
+!database/.gitkeep
+
+# Secrets & Credentials
+.env
+.streamlit/secrets.toml
+kaggle.json
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

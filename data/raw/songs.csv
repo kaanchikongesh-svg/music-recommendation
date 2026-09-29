@@ -1,0 +1,101 @@
+song_id,song_name,artist,album,genre,language,year,danceability,energy,valence,tempo,acousticness,instrumentalness,speechiness,loudness,popularity
+track_001,Blinding Lights,The Weeknd,After Hours,Synthwave,English,2020,0.514,0.73,0.334,171.005,0.00146,0.000095,0.0598,-5.934,95
+track_002,Save Your Tears,The Weeknd,After Hours,Synthpop,English,2020,0.68,0.826,0.644,118.051,0.0212,0.000012,0.0309,-5.487,92
+track_003,Starboy,The Weeknd,Starboy,R&B,English,2016,0.679,0.587,0.486,186.003,0.141,0.000006,0.276,-7.015,90
+track_004,Shape of You,Ed Sheeran,Divide,Pop,English,2017,0.825,0.652,0.931,95.977,0.581,0.0,0.0802,-3.183,94
+track_005,Bad Habits,Ed Sheeran,=,Pop,English,2021,0.808,0.897,0.591,126.026,0.0469,0.000031,0.0348,-3.712,88
+track_006,Perfect,Ed Sheeran,Divide,Pop,English,2017,0.599,0.448,0.168,95.05,0.163,0.0,0.0232,-6.312,91
+track_007,Levitating,Dua Lipa,Future Nostalgia,Disco-Pop,English,2020,0.702,0.825,0.915,103.014,0.00883,0.0,0.0574,-3.787,89
+track_008,Don't Start Now,Dua Lipa,Future Nostalgia,Nu-Disco,English,2019,0.793,0.793,0.679,123.95,0.0123,0.0,0.083,-4.521,87
+track_009,Anti-Hero,Taylor Swift,Midnights,Synth-Pop,English,2022,0.637,0.643,0.533,97.008,0.13,0.000002,0.0519,-6.571,96
+track_010,Cruel Summer,Taylor Swift,Lover,Pop,English,2019,0.552,0.702,0.564,169.994,0.117,0.000021,0.157,-5.707,98
+track_011,Blank Space,Taylor Swift,1989,Pop,English,2014,0.76,0.703,0.57,95.997,0.103,0.0,0.0502,-5.412,89
+track_012,As It Was,Harry Styles,Harry's House,Indie-Pop,English,2022,0.52,0.731,0.662,173.93,0.342,0.00101,0.0557,-5.338,97
+track_013,Watermelon Sugar,Harry Styles,Fine Line,Pop-Rock,English,2019,0.548,0.816,0.557,95.39,0.122,0.0,0.0465,-4.209,89
+track_014,Stay,The Kid LAROI,F*CK LOVE 3: OVER YOU,Pop-Rap,English,2021,0.591,0.764,0.478,169.928,0.0383,0.0,0.0483,-5.484,90
+track_015,Industry Baby,Lil Nas X,MONTERO,Hip-Hop,English,2021,0.736,0.704,0.894,149.995,0.0203,0.0,0.0642,-7.409,87
+track_016,Montero (Call Me By Your Name),Lil Nas X,MONTERO,Hip-Hop,English,2021,0.593,0.503,0.71,178.781,0.293,0.0,0.22,-6.725,86
+track_017,God's Plan,Drake,Scorpion,Hip-Hop,English,2018,0.754,0.449,0.357,77.169,0.0332,0.000083,0.109,-9.211,88
+track_018,One Dance,Drake,Views,Afrobeats,English,2016,0.792,0.625,0.37,103.967,0.00776,0.0018,0.0536,-5.609,87
+track_019,HUMBLE.,Kendrick Lamar,DAMN.,Hip-Hop,English,2017,0.908,0.621,0.421,150.011,0.000282,0.000054,0.102,-6.638,89
+track_020,Alright,Kendrick Lamar,To Pimp a Butterfly,Hip-Hop,English,2015,0.796,0.766,0.558,110.034,0.0742,0.0,0.238,-5.974,84
+track_021,Lose Yourself,Eminem,8 Mile Soundtrack,Hip-Hop,English,2002,0.692,0.744,0.0596,171.375,0.00683,0.0,0.257,-4.565,91
+track_022,Without Me,Eminem,The Eminem Show,Hip-Hop,English,2002,0.908,0.669,0.661,112.238,0.00285,0.0,0.0738,-2.827,88
+track_023,Bohemian Rhapsody,Queen,A Night at the Opera,Classic Rock,English,1975,0.414,0.404,0.224,71.105,0.271,0.0,0.0499,-9.961,92
+track_024,Don't Stop Me Now,Queen,Jazz,Classic Rock,English,1978,0.563,0.865,0.611,156.271,0.0474,0.000192,0.17,-5.277,88
+track_025,Another One Bites the Dust,Queen,The Game,Funk Rock,English,1980,0.933,0.528,0.73,110.425,0.112,0.212,0.161,-6.472,86
+track_026,Hotel California,Eagles,Hotel California,Classic Rock,English,1976,0.579,0.508,0.598,147.125,0.00574,0.000494,0.0268,-9.484,89
+track_027,Smells Like Teen Spirit,Nirvana,Nevermind,Grunge,English,1991,0.502,0.912,0.72,116.761,0.000025,0.000339,0.0564,-4.556,90
+track_028,Come as You Are,Nirvana,Nevermind,Grunge,English,1991,0.5,0.824,0.539,120.125,0.00016,0.00161,0.0384,-5.846,85
+track_029,In the End,Linkin Park,Hybrid Theory,Alternative Rock,English,2000,0.556,0.864,0.4,105.143,0.00958,0.0,0.0584,-5.87,89
+track_030,Numb,Linkin Park,Meteora,Alternative Rock,English,2003,0.496,0.863,0.243,110.018,0.0046,0.0,0.0382,-4.153,90
+track_031,Believer,Imagine Dragons,Evolve,Rock,English,2017,0.776,0.78,0.666,124.949,0.0622,0.0,0.128,-4.374,92
+track_032,Demons,Imagine Dragons,Night Visions,Rock,English,2012,0.505,0.71,0.428,89.938,0.19,0.000002,0.0321,-3.014,87
+track_033,Radioactive,Imagine Dragons,Night Visions,Electronic Rock,English,2012,0.448,0.784,0.21,136.245,0.106,0.000108,0.0627,-3.686,88
+track_034,Yellow,Coldplay,Parachutes,Alternative Rock,English,2000,0.429,0.661,0.285,173.372,0.00239,0.000121,0.0281,-7.227,91
+track_035,Viva La Vida,Coldplay,Viva La Vida or Death and All His Friends,Baroque Pop,English,2008,0.486,0.617,0.418,138.015,0.0895,0.000003,0.029,-7.115,89
+track_036,Fix You,Coldplay,X&Y,Alternative Rock,English,2005,0.209,0.418,0.123,138.173,0.163,0.0013,0.0332,-8.74,87
+track_037,Something Just Like This,The Chainsmokers,Memories...Do Not Open,EDM,English,2017,0.617,0.635,0.446,103.019,0.0498,0.0,0.0317,-6.769,89
+track_038,Closer,The Chainsmokers,Collage,EDM,English,2016,0.748,0.524,0.661,95.01,0.414,0.0,0.0338,-5.599,88
+track_039,Wake Me Up,Avicii,True,EDM,English,2013,0.532,0.784,0.64,124.08,0.0038,0.0017,0.0523,-5.6,89
+track_040,The Nights,Avicii,The Days / The Nights,Dance-Pop,English,2014,0.527,0.835,0.654,126.01,0.0166,0.0,0.0361,-4.68,88
+track_041,Get Lucky,Daft Punk,Random Access Memories,Disco,English,2013,0.794,0.811,0.862,116.043,0.0426,0.000001,0.0349,-8.966,88
+track_042,One More Time,Daft Punk,Discovery,French House,English,2001,0.61,0.822,0.639,122.759,0.0192,0.000069,0.0577,-5.765,86
+track_043,Harder Better Faster Stronger,Daft Punk,Discovery,Electro,English,2001,0.767,0.706,0.88,123.473,0.00768,0.0384,0.136,-6.423,85
+track_044,Stargazing,Kygo,Stargazing,Tropical House,English,2017,0.677,0.738,0.368,103.012,0.106,0.0,0.0371,-4.279,83
+track_045,Faded,Alan Walker,Different World,Electro House,English,2015,0.602,0.639,0.165,89.983,0.0288,0.000008,0.0456,-5.018,87
+track_046,Alone,Alan Walker,Different World,Electro House,English,2016,0.672,0.865,0.164,96.947,0.0371,0.000051,0.0438,-3.827,84
+track_047,bad guy,Billie Eilish,WHEN WE ALL FALL ASLEEP WHERE DO WE GO?,Electropop,English,2019,0.701,0.425,0.562,135.128,0.328,0.13,0.375,-10.965,90
+track_048,everything i wanted,Billie Eilish,everything i wanted,Alt-Pop,English,2019,0.704,0.225,0.242,120.006,0.902,0.657,0.0994,-14.454,87
+track_049,happier than ever,Billie Eilish,Happier Than Ever,Alternative,English,2021,0.332,0.225,0.149,81.04,0.767,0.00349,0.0348,-8.697,88
+track_050,Drivers License,Olivia Rodrigo,SOUR,Bedroom Pop,English,2021,0.585,0.436,0.132,143.874,0.721,0.000011,0.0601,-8.761,90
+track_051,Good 4 U,Olivia Rodrigo,SOUR,Pop-Punk,English,2021,0.563,0.664,0.688,166.928,0.335,0.0,0.154,-5.044,91
+track_052,Vampire,Olivia Rodrigo,GUTS,Pop-Rock,English,2023,0.511,0.532,0.327,137.996,0.165,0.0,0.0578,-5.745,93
+track_053,Flowers,Miley Cyrus,Endless Summer Vacation,Disco-Pop,English,2023,0.707,0.681,0.646,118.006,0.0632,0.000005,0.0668,-4.325,95
+track_054,Rolling in the Deep,Adele,21,Soul,English,2010,0.729,0.756,0.519,104.945,0.131,0.0,0.0291,-5.119,89
+track_055,Someone Like You,Adele,21,Soul,English,2011,0.559,0.33,0.285,135.109,0.892,0.0,0.0285,-8.251,88
+track_056,Easy On Me,Adele,30,Pop-Soul,English,2021,0.604,0.366,0.13,108.411,0.578,0.0,0.0283,-7.519,87
+track_057,Uptown Funk,Mark Ronson,Uptown Special,Funk,English,2014,0.856,0.809,0.966,114.988,0.00801,0.000082,0.0825,-4.737,89
+track_058,Happy,Pharrell Williams,G I R L,Funk-Pop,English,2013,0.647,0.822,0.962,159.986,0.219,0.0,0.183,-5.722,85
+track_059,Can't Stop the Feeling!,Justin Timberlake,Trolls Soundtrack,Disco-Pop,English,2016,0.669,0.832,0.702,113.035,0.0102,0.0,0.0686,-5.72,84
+track_060,Sunflower,Post Malone,Spider-Man: Into the Spider-Verse,Melodic Rap,English,2018,0.76,0.479,0.913,89.911,0.556,0.0,0.0466,-5.574,92
+track_061,Circles,Post Malone,Hollywood's Bleeding,Pop-Rock,English,2019,0.695,0.762,0.553,120.042,0.192,0.00244,0.0395,-3.497,89
+track_062,Rockstar,Post Malone,beerbongs & bentleys,Trap,English,2017,0.585,0.52,0.129,159.847,0.124,0.00007,0.0712,-6.136,88
+track_063,Tum Hi Ho,Arijit Singh,Aashiqui 2,Romantic,Hindi,2013,0.554,0.612,0.34,92.012,0.612,0.000045,0.0381,-7.21,89
+track_064,Channa Mereya,Arijit Singh,Ae Dil Hai Mushkil,Sufi-Pop,Hindi,2016,0.518,0.724,0.428,98.112,0.458,0.0,0.0442,-6.14,90
+track_065,Kesariya,Arijit Singh,Brahmastra,Romantic-Pop,Hindi,2022,0.577,0.687,0.512,112.03,0.312,0.0,0.0398,-5.43,93
+track_066,Apna Bana Le,Arijit Singh,Bhediya,Romantic,Hindi,2022,0.534,0.598,0.485,96.04,0.482,0.0,0.0365,-6.78,91
+track_067,Jai Ho,A.R. Rahman,Slumdog Millionaire,World Fusion,Hindi,2008,0.728,0.892,0.792,130.015,0.062,0.00034,0.0741,-4.21,87
+track_068,Kun Faya Kun,A.R. Rahman,Rockstar,Sufi,Hindi,2011,0.442,0.548,0.395,84.12,0.742,0.00012,0.0412,-8.12,90
+track_069,Chaiyya Chaiyya,A.R. Rahman,Dil Se..,Folk-Pop,Hindi,1998,0.802,0.895,0.912,126.04,0.112,0.00021,0.0812,-4.89,88
+track_070,Tere Bina,A.R. Rahman,Guru,Romantic,Hindi,2007,0.612,0.634,0.521,94.02,0.521,0.00008,0.0354,-6.94,86
+track_071,Rowdy Baby,Dhanush,Maari 2,Kuthu-Pop,Tamil,2018,0.842,0.887,0.942,124.01,0.082,0.00004,0.0814,-4.12,91
+track_072,Arabic Kuthu,Anirudh Ravichander,Beast,Fusion Dance,Tamil,2022,0.812,0.894,0.912,128.02,0.091,0.00001,0.0762,-4.34,92
+track_073,Why This Kolaveri Di,Anirudh Ravichander,3,Tanglish-Pop,Tamil,2011,0.781,0.684,0.812,118.04,0.294,0.0,0.112,-6.12,87
+track_074,Vathi Coming,Anirudh Ravichander,Master,Kuthu,Tamil,2020,0.854,0.912,0.945,130.04,0.041,0.00012,0.0912,-3.82,90
+track_075,Enjoy Enjaami,Dhee,Enjoy Enjaami,Indie-Folk,Tamil,2021,0.792,0.782,0.832,108.02,0.312,0.0,0.0612,-5.41,89
+track_076,Hukum,Anirudh Ravichander,Jailer,Mass-Rock,Tamil,2023,0.814,0.924,0.784,132.04,0.052,0.00003,0.104,-3.21,93
+track_077,Munbe Vaa,A.R. Rahman,Sillunu Oru Kaadhal,Melody,Tamil,2006,0.612,0.524,0.482,88.02,0.684,0.00001,0.0321,-7.84,90
+track_078,Enna Sona,A.R. Rahman,OK Jaanu,Romantic,Hindi,2017,0.584,0.512,0.612,92.01,0.582,0.0,0.0381,-7.12,87
+track_079,Take Five,Dave Brubeck,Time Out,Cool Jazz,English,1959,0.454,0.342,0.612,174.01,0.724,0.824,0.0412,-11.2,85
+track_080,So What,Miles Davis,Kind of Blue,Modal Jazz,English,1959,0.564,0.281,0.342,136.02,0.812,0.884,0.0482,-12.4,86
+track_081,Fly Me to the Moon,Frank Sinatra,It Might as Well Be Swing,Vocal Jazz,English,1964,0.612,0.412,0.592,119.04,0.712,0.00001,0.0412,-9.12,88
+track_082,Clair de Lune,Claude Debussy,Suite bergamasque,Impressionist Classical,Instrumental,1905,0.214,0.082,0.074,68.04,0.992,0.942,0.0382,-22.4,89
+track_083,Moonlight Sonata,Ludwig van Beethoven,Piano Sonata No. 14,Classical,Instrumental,1801,0.284,0.112,0.114,64.02,0.984,0.912,0.0412,-20.8,91
+track_084,Four Seasons - Spring,Antonio Vivaldi,The Four Seasons,Baroque Classical,Instrumental,1725,0.412,0.512,0.784,110.02,0.842,0.812,0.0462,-14.2,87
+track_085,Dynamite,BTS,BE,Disco-Pop,English,2020,0.746,0.765,0.737,114.044,0.0112,0.0,0.0993,-4.41,91
+track_086,Butter,BTS,Butter,Dance-Pop,English,2021,0.759,0.459,0.695,110.017,0.00323,0.0,0.0959,-5.187,89
+track_087,How You Like That,BLACKPINK,THE ALBUM,K-Pop,Korean,2020,0.828,0.797,0.347,130.014,0.0841,0.000004,0.0911,-4.032,88
+track_088,Pink Venom,BLACKPINK,BORN PINK,Hip-Hop / K-Pop,Korean,2022,0.792,0.694,0.742,90.021,0.012,0.00001,0.194,-5.412,89
+track_089,Despacito,Luis Fonsi,VIDA,Reggaeton,Spanish,2017,0.655,0.797,0.839,177.833,0.209,0.0,0.153,-4.787,90
+track_090,Mi Gente,J Balvin,Vibras,Reggaeton,Spanish,2017,0.762,0.725,0.463,104.992,0.0156,0.000022,0.0848,-6.257,84
+track_091,Dakiti,Bad Bunny,El Ultimo Tour Del Mundo,Reggaeton,Spanish,2020,0.914,0.573,0.574,109.978,0.401,0.000042,0.0632,-6.182,88
+track_092,Tití Me Preguntó,Bad Bunny,Un Verano Sin Ti,Dembow,Spanish,2022,0.65,0.715,0.187,106.672,0.0993,0.000291,0.253,-5.198,92
+track_093,Riptide,Vance Joy,Dream Your Life Away,Indie-Folk,English,2013,0.484,0.731,0.731,101.654,0.469,0.0,0.0379,-6.694,89
+track_094,Ho Hey,The Lumineers,The Lumineers,Americana,English,2012,0.685,0.438,0.798,116.425,0.793,0.0,0.0336,-9.103,86
+track_095,Sweater Weather,The Neighbourhood,I Love You.,Indie-Rock,English,2013,0.612,0.807,0.398,124.053,0.0495,0.0177,0.0347,-2.81,91
+track_096,Midnight City,M83,Hurry Up We're Dreaming,Synthpop,English,2011,0.524,0.711,0.347,105.014,0.00041,0.0125,0.0354,-5.72,86
+track_097,Electric Feel,MGMT,Oracular Spectacular,Psychedelic Pop,English,2007,0.763,0.803,0.56,103.046,0.0631,0.000024,0.0531,-3.91,85
+track_098,Kids,MGMT,Oracular Spectacular,Synth-Rock,English,2007,0.621,0.925,0.865,122.955,0.00024,0.00008,0.0361,-3.21,84
+track_099,Do I Wanna Know?,Arctic Monkeys,AM,Indie-Rock,English,2013,0.548,0.532,0.405,85.03,0.186,0.000029,0.0323,-7.596,92
+track_100,505,Arctic Monkeys,Favourite Worst Nightmare,Indie-Rock,English,2007,0.428,0.852,0.234,140.04,0.0021,0.00004,0.0542,-5.84,90
