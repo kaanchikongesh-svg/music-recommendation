@@ -8,9 +8,9 @@ from backend.data.loader import (
 )
 from backend.data.validator import ValidationResult
 from backend.services.music_service import search_and_filter_tracks
-from frontend.cards import render_song_card, render_song_details_section
-from frontend.components import render_dataset_upload_widget, render_topbar
-from frontend.empty_states import (
+from frontend_streamlit.cards import render_song_card, render_song_details_section
+from frontend_streamlit.components import render_dataset_upload_widget, render_topbar
+from frontend_streamlit.empty_states import (
     render_no_dataset_state,
     render_no_search_results_state,
 )

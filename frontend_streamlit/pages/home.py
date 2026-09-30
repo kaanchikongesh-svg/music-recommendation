@@ -14,18 +14,18 @@ from backend.data.validator import (
 from backend.recommendation.engine import get_personalized_recommendations
 from backend.services.history_service import get_user_timeline_history
 from backend.services.music_service import get_featured_tracks, get_top_genres
-from frontend.cards import (
+from frontend_streamlit.cards import (
     render_recommendation_card,
     render_song_card,
     render_song_details_section,
 )
-from frontend.components import (
+from frontend_streamlit.components import (
     render_dataset_upload_widget,
     render_hero,
     render_metrics_grid,
     render_topbar,
 )
-from frontend.empty_states import render_empty_state, render_no_dataset_state
+from frontend_streamlit.empty_states import render_empty_state, render_no_dataset_state
 
 
 def render_home_page(result: ValidationResult, user_id: int) -> None:

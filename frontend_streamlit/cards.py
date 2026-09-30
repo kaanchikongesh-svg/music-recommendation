@@ -11,8 +11,8 @@ from backend.services.playlist_service import (
     add_track_to_playlist,
     list_user_playlists,
 )
-from frontend.components import render_audio_radar_chart
-from frontend.empty_states import render_no_recommendations_state
+from frontend_streamlit.components import render_audio_radar_chart
+from frontend_streamlit.empty_states import render_no_recommendations_state
 
 
 def render_song_card(

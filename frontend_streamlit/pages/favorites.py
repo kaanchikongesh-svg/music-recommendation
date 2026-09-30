@@ -10,9 +10,9 @@ from backend.services.history_service import (
     toggle_song_favorite,
 )
 from backend.services.playlist_service import add_track_to_playlist, list_user_playlists
-from frontend.cards import render_song_details_section
-from frontend.components import render_topbar
-from frontend.empty_states import render_no_favorites_state
+from frontend_streamlit.cards import render_song_details_section
+from frontend_streamlit.components import render_topbar
+from frontend_streamlit.empty_states import render_no_favorites_state
 
 
 def render_favorites_page(result: ValidationResult, user_id: int) -> None:

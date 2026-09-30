@@ -8,8 +8,8 @@ from backend.services.history_service import (
     get_user_timeline_history,
     log_play_action,
 )
-from frontend.components import render_topbar
-from frontend.empty_states import render_no_history_state
+from frontend_streamlit.components import render_topbar
+from frontend_streamlit.empty_states import render_no_history_state
 
 
 def render_history_page(result: ValidationResult, user_id: int) -> None:

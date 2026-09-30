@@ -12,8 +12,8 @@ from backend.services.playlist_service import (
     remove_track_from_playlist,
     rename_user_playlist,
 )
-from frontend.components import render_topbar
-from frontend.empty_states import render_no_playlists_state
+from frontend_streamlit.components import render_topbar
+from frontend_streamlit.empty_states import render_no_playlists_state
 
 
 def render_playlists_page(result: ValidationResult, user_id: int) -> None:

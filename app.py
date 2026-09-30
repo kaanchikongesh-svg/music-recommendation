@@ -18,18 +18,18 @@ from backend.data.validator import (
 )
 from backend.database.connection import init_db
 from backend.services.user_service import get_default_user
-from frontend.components import render_dataset_upload_widget
-from frontend.pages.discover import render_discover_page
-from frontend.pages.favorites import render_favorites_page
-from frontend.pages.history import render_history_page
-from frontend.pages.home import render_home_page
-from frontend.pages.login import render_login_page
-from frontend.pages.playlists import render_playlists_page
-from frontend.pages.profile import render_profile_page
-from frontend.pages.recommendations import render_recommendations_page
-from frontend.player import render_music_player
-from frontend.sidebar import render_sidebar
-from frontend.theme import inject_custom_css
+from frontend_streamlit.components import render_dataset_upload_widget
+from frontend_streamlit.pages.discover import render_discover_page
+from frontend_streamlit.pages.favorites import render_favorites_page
+from frontend_streamlit.pages.history import render_history_page
+from frontend_streamlit.pages.home import render_home_page
+from frontend_streamlit.pages.login import render_login_page
+from frontend_streamlit.pages.playlists import render_playlists_page
+from frontend_streamlit.pages.profile import render_profile_page
+from frontend_streamlit.pages.recommendations import render_recommendations_page
+from frontend_streamlit.player import render_music_player
+from frontend_streamlit.sidebar import render_sidebar
+from frontend_streamlit.theme import inject_custom_css
 
 # Streamlit Page Configuration
 st.set_page_config(

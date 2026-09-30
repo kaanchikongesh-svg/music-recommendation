@@ -4,7 +4,7 @@ import streamlit as st
 
 from backend.data.validator import ValidationResult
 from backend.services.user_service import get_user_profile_analytics
-from frontend.components import render_topbar
+from frontend_streamlit.components import render_topbar
 
 
 def render_profile_page(result: ValidationResult, user_id: int) -> None:
