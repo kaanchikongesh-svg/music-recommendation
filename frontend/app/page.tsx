@@ -2,136 +2,230 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import SongCard from "@/components/SongCard";
-import { apiFeatured, apiRecommendations, apiCatalogStats, Song, Recommendation } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { apiListSongs, apiFeatured, Song } from "@/lib/api";
+import { usePlayer } from "@/lib/usePlayer";
 
 export default function HomePage() {
-  const [featured, setFeatured] = useState<Song[]>([]);
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
-  const [stats, setStats] = useState<{ total_songs?: number; total_genres?: number; total_artists?: number }>({});
+  const router = useRouter();
+  const { play } = usePlayer();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [songs, setSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
+  const [adminModalOpen, setAdminModalOpen] = useState(false);
+  const [importStatus, setImportStatus] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadData() {
+    async function loadCatalog() {
       try {
-        const [featRes, recRes, statsRes] = await Promise.all([
-          apiFeatured(8).catch(() => ({ featured: [] })),
-          apiRecommendations(undefined, 8).catch(() => ({ recommendations: [], type: "" })),
-          apiCatalogStats().catch(() => ({})),
-        ]);
-        setFeatured(featRes.featured || []);
-        setRecommendations(recRes.recommendations || []);
-        setStats(statsRes);
-      } catch (err) {
-        console.error("Error loading homepage data:", err);
+        const res = await apiFeatured(8).catch(() => ({ featured: [] }));
+        setSongs(res.featured || []);
+      } catch {
+        setSongs([]);
       } finally {
         setLoading(false);
       }
     }
-    loadData();
+    loadCatalog();
   }, []);
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/discover?query=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const handleLoadSampleData = async () => {
+    setImportStatus("Importing songs from dataset...");
+    try {
+      const res = await apiListSongs({ limit: 12 });
+      if (res && res.songs && res.songs.length > 0) {
+        setSongs(res.songs);
+        setImportStatus("Catalog loaded successfully!");
+        setTimeout(() => setAdminModalOpen(false), 800);
+      } else {
+        setImportStatus("Ready to search or stream.");
+      }
+    } catch (e) {
+      setImportStatus("Import error. Ensure FastAPI backend is active.");
+    }
+  };
+
   return (
-    <div className="home-container">
-      {/* Hero Banner */}
-      <section className="hero-banner">
-        <div className="hero-content">
-          <span className="hero-badge font-mono">✨ POWERED BY TF-IDF ENGINE</span>
-          <h1 className="hero-title">
-            Discover Your Next <span className="gradient-text">Musical Obsession</span>
-          </h1>
-          <p className="hero-subtitle">
-            Smart content-based music recommendations powered by vector similarity across thousands of real tracks.
-          </p>
+    <div className="home-dashboard-view">
+      {/* ── Hero Card ── */}
+      <section className="hero-card">
+        <div className="hero-ambient-glow" />
+        <div className="hero-inner">
+          <h1 className="hero-brand-title">TuneSphere</h1>
+          <p className="hero-subtitle">Discover your next favorite song.</p>
 
-          <div className="hero-actions">
-            <Link href="/recommendations" className="btn btn-primary">
-              ⚡ Get Recommendations
-            </Link>
-            <Link href="/discover" className="btn btn-secondary">
-              🔍 Explore Catalog
-            </Link>
-          </div>
-        </div>
-
-        {/* Stats Row */}
-        <div className="stats-row">
-          <div className="stat-card">
-            <span className="stat-val">{stats.total_songs ?? "1,000+"}</span>
-            <span className="stat-label">Tracks Analyzed</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-val">{stats.total_genres ?? "15+"}</span>
-            <span className="stat-label">Genres</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-val">100%</span>
-            <span className="stat-label">Real Dataset</span>
-          </div>
+          <form onSubmit={handleSearchSubmit} className="hero-search-bar">
+            <svg
+              className="search-icon-svg"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              className="search-input-field"
+              placeholder="Songs, artists, albums, genres..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button type="submit" className="hero-search-btn">
+              Search
+            </button>
+          </form>
         </div>
       </section>
 
-      {/* Recommended For You */}
-      <section className="section">
-        <div className="section-header">
-          <div>
-            <h2 className="section-title">🔥 Top Recommendations</h2>
-            <p className="section-subtitle">Handpicked based on audio feature similarities</p>
-          </div>
-          <Link href="/recommendations" className="view-all-link">
-            View engine →
-          </Link>
-        </div>
-
+      {/* ── Catalog Section ── */}
+      <section className="catalog-section">
         {loading ? (
-          <div className="loading-grid">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="skeleton-card" />
-            ))}
+          <div className="catalog-empty-card">
+            <div className="empty-cylinder-icon">
+              <svg viewBox="0 0 24 24">
+                <ellipse cx="12" cy="5" rx="9" ry="3" />
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+              </svg>
+            </div>
+            <h3 className="catalog-empty-title">Loading catalog...</h3>
           </div>
-        ) : recommendations.length > 0 ? (
-          <div className="song-grid">
-            {recommendations.map((song) => (
-              <SongCard key={song.song_id} song={song} />
-            ))}
+        ) : songs.length === 0 ? (
+          <div className="catalog-empty-card">
+            <div className="empty-cylinder-icon">
+              <svg viewBox="0 0 24 24">
+                <ellipse cx="12" cy="5" rx="9" ry="3" />
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+              </svg>
+            </div>
+            <h3 className="catalog-empty-title">The catalog is empty</h3>
+            <p className="catalog-empty-desc">
+              No songs have been imported yet.{" "}
+              <button
+                type="button"
+                onClick={() => setAdminModalOpen(true)}
+                className="accent-orange-link"
+              >
+                Open catalog admin
+              </button>
+            </p>
           </div>
         ) : (
-          <div className="empty-box">
-            <p>No recommendations loaded yet. Make sure the backend is running!</p>
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <h2 style={{ fontSize: "1.2rem", fontWeight: 700, color: "#fff" }}>Featured Catalog</h2>
+              <Link href="/discover" className="accent-orange-link" style={{ fontSize: "0.9rem" }}>
+                Browse All →
+              </Link>
+            </div>
+            <div className="songs-grid-wrapper">
+              {songs.map((song) => (
+                <div key={song.song_id} className="song-item-card">
+                  <div className="song-card-header">
+                    <div
+                      className="song-cover-thumb"
+                      onClick={() => play(song)}
+                      title="Play preview"
+                    >
+                      ▶
+                    </div>
+                    <div className="song-card-meta">
+                      <div className="song-title-text" title={song.song_name}>
+                        {song.song_name}
+                      </div>
+                      <div className="song-artist-text">{song.artist}</div>
+                    </div>
+                  </div>
+                  <div className="song-tags-row">
+                    {song.genre && (
+                      <span className="badge-tag accent">{song.genre}</span>
+                    )}
+                    {song.year && (
+                      <span className="badge-tag">{song.year}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </section>
 
-      {/* Featured Songs */}
-      <section className="section">
-        <div className="section-header">
-          <div>
-            <h2 className="section-title">🎵 Featured Catalog Tracks</h2>
-            <p className="section-subtitle">Popular selections from the library</p>
+      {/* ── Catalog Admin Modal ── */}
+      {adminModalOpen && (
+        <div className="modal-backdrop" onClick={() => setAdminModalOpen(false)}>
+          <div
+            className="modal-content-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header-row">
+              <h3 className="modal-title">Catalog Administration</h3>
+              <button
+                className="modal-close-btn"
+                onClick={() => setAdminModalOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", marginBottom: "20px" }}>
+              Initialize or reload tracks from the backend machine learning dataset into your active session.
+            </p>
+            {importStatus && (
+              <div
+                style={{
+                  background: "#151928",
+                  padding: "10px 16px",
+                  borderRadius: "8px",
+                  fontSize: "0.85rem",
+                  color: "var(--accent-orange)",
+                  marginBottom: "16px",
+                }}
+              >
+                {importStatus}
+              </div>
+            )}
+            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                onClick={() => setAdminModalOpen(false)}
+                style={{
+                  background: "transparent",
+                  color: "#94a3b8",
+                  border: "1px solid #1e2538",
+                  borderRadius: "8px",
+                  padding: "8px 18px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleLoadSampleData}
+                style={{
+                  background: "var(--accent-orange)",
+                  color: "#000",
+                  fontWeight: 700,
+                  border: "none",
+                  borderRadius: "8px",
+                  padding: "8px 20px",
+                  cursor: "pointer",
+                }}
+              >
+                Sync Catalog
+              </button>
+            </div>
           </div>
-          <Link href="/discover" className="view-all-link">
-            Browse all →
-          </Link>
         </div>
-
-        {loading ? (
-          <div className="loading-grid">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="skeleton-card" />
-            ))}
-          </div>
-        ) : featured.length > 0 ? (
-          <div className="song-grid">
-            {featured.map((song) => (
-              <SongCard key={song.song_id} song={song} />
-            ))}
-          </div>
-        ) : (
-          <div className="empty-box">
-            <p>No songs found in catalog.</p>
-          </div>
-        )}
-      </section>
+      )}
     </div>
   );
 }
