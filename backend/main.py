@@ -1,8 +1,15 @@
-"""TuneSphere - Music Recommendation System - FastAPI Backend Application."""
+import sys
+from pathlib import Path
+
+# Ensure project root and backend dir are in sys.path for serverless execution
+BASE_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = BASE_DIR.parent
+for p in [str(PROJECT_ROOT), str(BASE_DIR)]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
 
 from contextlib import asynccontextmanager
 import os
-from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 

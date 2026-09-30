@@ -1,0 +1,4 @@
+# Optional dependencies for running local Streamlit UI: streamlit run app.py
+-r requirements.txt
+streamlit>=1.28.0
+plotly>=5.17.0
