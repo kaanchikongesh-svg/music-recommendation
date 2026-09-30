@@ -3,11 +3,13 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/useAuth";
+import { useTheme } from "@/lib/useTheme";
 import { PlayerDock } from "@/components/PlayerDock";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user } = useAuth();
+  const { theme, setTheme, themes } = useTheme();
 
   const isAuthPage = pathname === "/login" || pathname === "/register";
   if (isAuthPage) {
@@ -117,8 +119,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        {/* ── User Session Footer ── */}
+        {/* ── Sidebar Footer / User Info & Theme Switcher ── */}
         <div className="sidebar-footer">
+          <div className="theme-switcher-pills" title="Select Theme Color">
+            {themes.map((t) => (
+              <div
+                key={t.id}
+                className={`theme-dot ${theme === t.id ? "active" : ""}`}
+                style={{ backgroundColor: t.color, color: t.color }}
+                onClick={() => setTheme(t.id)}
+                title={`Theme: ${t.name}`}
+              />
+            ))}
+          </div>
           <div className="user-account-badge">
             <span className="user-email-text">
               {user?.email || (user ? `${user.username}@tunesphere.ai` : "kongesh.pad.2024@spsce.ac.in")}

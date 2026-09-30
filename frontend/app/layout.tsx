@@ -3,6 +3,7 @@ import "./globals.css";
 import { AppShell } from "@/components/AppShell";
 import { AuthProvider } from "@/lib/useAuth";
 import { PlayerProvider } from "@/lib/usePlayer";
+import { ThemeProvider } from "@/lib/useTheme";
 
 export const metadata: Metadata = {
   title: "TuneSphere — AI Music Recommendation",
@@ -13,11 +14,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <AuthProvider>
-          <PlayerProvider>
-            <AppShell>{children}</AppShell>
-          </PlayerProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <PlayerProvider>
+              <AppShell>{children}</AppShell>
+            </PlayerProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

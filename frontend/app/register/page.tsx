@@ -7,9 +7,8 @@ import { useAuth } from "@/lib/useAuth";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
@@ -18,21 +17,15 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
     setLoading(true);
     try {
       await register(username, password, email || undefined);
-      router.push("/discover");
+      router.push("/");
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError("Registration failed. Please try again.");
+        setError("Registration failed");
       }
     } finally {
       setLoading(false);
@@ -40,73 +33,127 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="auth-page-container">
-      <div className="auth-card glass-card">
-        <div className="auth-header">
-          <h1 className="auth-title">
-            Create <span className="gradient-text">Account</span>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px",
+        background: "radial-gradient(ellipse at 50% 30%, var(--accent-glow) 0%, transparent 60%), #06070a",
+      }}
+    >
+      <div
+        className="modal-content-card"
+        style={{ maxWidth: "420px", padding: "40px 32px" }}
+      >
+        <div style={{ textAlign: "center", marginBottom: "28px" }}>
+          <h1 className="brand-logo-text" style={{ fontSize: "2.2rem", marginBottom: "8px" }}>
+            TuneSphere
           </h1>
-          <p className="auth-subtitle">Join TuneSphere to personalize your recommendations</p>
+          <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
+            Create your account to save playlists and favorites
+          </p>
         </div>
 
-        {error && <div className="error-alert">{error}</div>}
+        {error && (
+          <div
+            style={{
+              background: "rgba(239, 68, 68, 0.15)",
+              border: "1px solid rgba(239, 68, 68, 0.4)",
+              color: "#ef4444",
+              borderRadius: "8px",
+              padding: "10px 14px",
+              fontSize: "0.85rem",
+              marginBottom: "18px",
+            }}
+          >
+            {error}
+          </div>
+        )}
 
-        <form onSubmit={handleSubmit} className="auth-form space-y-4">
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div>
-            <label className="input-label">Username</label>
+            <label style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+              Username
+            </label>
             <input
               type="text"
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Choose a username"
-              className="search-input"
+              placeholder="Pick a username"
+              style={{
+                width: "100%",
+                background: "#080a11",
+                border: "1px solid #1a2030",
+                borderRadius: "10px",
+                padding: "12px 14px",
+                color: "#fff",
+                fontSize: "0.95rem",
+                outline: "none",
+              }}
             />
           </div>
 
           <div>
-            <label className="input-label">Email (Optional)</label>
+            <label style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+              Email (Optional)
+            </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="search-input"
+              style={{
+                width: "100%",
+                background: "#080a11",
+                border: "1px solid #1a2030",
+                borderRadius: "10px",
+                padding: "12px 14px",
+                color: "#fff",
+                fontSize: "0.95rem",
+                outline: "none",
+              }}
             />
           </div>
 
           <div>
-            <label className="input-label">Password</label>
+            <label style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+              Password
+            </label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Choose a password"
-              className="search-input"
+              placeholder="••••••••"
+              style={{
+                width: "100%",
+                background: "#080a11",
+                border: "1px solid #1a2030",
+                borderRadius: "10px",
+                padding: "12px 14px",
+                color: "#fff",
+                fontSize: "0.95rem",
+                outline: "none",
+              }}
             />
           </div>
 
-          <div>
-            <label className="input-label">Confirm Password</label>
-            <input
-              type="password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm password"
-              className="search-input"
-            />
-          </div>
-
-          <button type="submit" className="btn btn-primary w-full py-3 mt-4" disabled={loading}>
+          <button
+            type="submit"
+            className="btn-accent-theme"
+            disabled={loading}
+            style={{ width: "100%", marginTop: "8px", padding: "12px" }}
+          >
             {loading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 
-        <div className="auth-footer text-center mt-6 text-muted">
+        <div style={{ textAlign: "center", marginTop: "24px", color: "var(--text-muted)", fontSize: "0.88rem" }}>
           Already have an account?{" "}
-          <Link href="/login" className="text-primary hover:underline">
+          <Link href="/login" className="accent-theme-link">
             Sign In
           </Link>
         </div>

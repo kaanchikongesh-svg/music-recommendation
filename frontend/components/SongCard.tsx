@@ -57,52 +57,44 @@ export default function SongCard({ song, isFav: initialFav = false, onFavToggle 
     }
   };
 
-  // Generate a deterministic gradient based on title for album art backdrop
-  const hash = title.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const hue1 = hash % 360;
-  const hue2 = (hue1 + 60) % 360;
-
   return (
-    <div className={`song-card ${isCurrent ? "playing" : ""}`}>
-      <div
-        className="song-card-art"
-        style={{
-          background: `linear-gradient(135deg, hsl(${hue1}, 70%, 20%), hsl(${hue2}, 80%, 12%))`,
-        }}
-      >
-        <div className="art-overlay">
-          <button className="play-btn" onClick={handlePlay} title={isCurrent && isPlaying ? "Pause" : "Play"}>
-            {isCurrent && isPlaying ? "⏸" : "▶"}
-          </button>
+    <div className={`song-item-card ${isCurrent ? "playing" : ""}`}>
+      <div className="song-card-header">
+        <div
+          className="song-cover-thumb"
+          onClick={handlePlay}
+          title={isCurrent && isPlaying ? "Pause preview" : "Play preview"}
+        >
+          {isCurrent && isPlaying ? "⏸" : "▶"}
         </div>
-
-        {/* Music icon artwork */}
-        <div className="art-icon">🎵</div>
+        <div className="song-card-meta">
+          <div className="song-title-text" title={title}>
+            {title}
+          </div>
+          <div className="song-artist-text" title={artist}>
+            {artist}
+          </div>
+        </div>
       </div>
 
-      <div className="song-card-info">
-        <h4 className="song-title" title={title}>
-          {title}
-        </h4>
-        <p className="song-artist">{artist}</p>
-
-        <div className="song-card-footer">
-          {genre && <span className="genre-badge">{genre}</span>}
+      <div className="song-tags-row">
+        <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+          {genre && <span className="badge-tag accent">{genre}</span>}
           {"score" in song && song.score !== undefined && (
-            <span className="match-badge">{(song.score * 100).toFixed(0)}% Match</span>
-          )}
-
-          {user && (
-            <button
-              className={`fav-btn ${isFav ? "active" : ""}`}
-              onClick={handleFavorite}
-              disabled={favLoading}
-              title={isFav ? "Remove from Favorites" : "Add to Favorites"}
-            >
-              {isFav ? "♥" : "♡"}
-            </button>
+            <span className="badge-tag">{(song.score * 100).toFixed(0)}% Match</span>
           )}
         </div>
+
+        {user && (
+          <button
+            className={`action-icon-btn ${isFav ? "active" : ""}`}
+            onClick={handleFavorite}
+            disabled={favLoading}
+            title={isFav ? "Remove from Favorites" : "Add to Favorites"}
+          >
+            {isFav ? "♥" : "♡"}
+          </button>
+        )}
       </div>
     </div>
   );

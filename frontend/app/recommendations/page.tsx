@@ -2,122 +2,154 @@
 
 import React, { useEffect, useState } from "react";
 import SongCard from "@/components/SongCard";
-import { apiListSongs, apiRecommendations, Song, Recommendation } from "@/lib/api";
+import { apiRecommendations, apiListSongs, Recommendation, Song } from "@/lib/api";
 
-export default function RecommendationsPage() {
-  const [allSongs, setAllSongs] = useState<Song[]>([]);
-  const [selectedSeed, setSelectedSeed] = useState<string>("");
+export default function ForYouPage() {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
-  const [engineType, setEngineType] = useState<string>("");
-  const [loading, setLoading] = useState(false);
-  const [limit, setLimit] = useState(8);
+  const [candidateSongs, setCandidateSongs] = useState<Song[]>([]);
+  const [selectedSeedId, setSelectedSeedId] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [recType, setRecType] = useState<string>("personalized");
 
-  // Load a sample list of songs for the seed dropdown
   useEffect(() => {
-    apiListSongs({ limit: 50 })
-      .then((res) => setAllSongs(res.songs || []))
-      .catch((err) => console.error("Failed to load catalog for seed selection:", err));
+    apiListSongs({ limit: 10 })
+      .then((res) => setCandidateSongs(res.songs || []))
+      .catch(() => {});
   }, []);
 
-  // Fetch recommendations whenever selectedSeed or limit changes
-  const fetchRecs = async (seedId?: string) => {
+  useEffect(() => {
+    fetchRecommendations(selectedSeedId);
+  }, [selectedSeedId]);
+
+  const fetchRecommendations = async (seedId?: string) => {
     setLoading(true);
     try {
-      const res = await apiRecommendations(seedId || selectedSeed || undefined, limit);
+      const res = await apiRecommendations(seedId || undefined, 12);
       setRecommendations(res.recommendations || []);
-      setEngineType(res.type || "Content-Based Filtering (TF-IDF + Audio Features)");
-    } catch (err) {
-      console.error("Error generating recommendations:", err);
+      setRecType(res.type || "personalized");
+    } catch {
+      setRecommendations([]);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchRecs();
-  }, [limit]);
-
-  const handleSeedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
-    setSelectedSeed(val);
-    fetchRecs(val);
-  };
-
   return (
-    <div className="recommendations-container">
-      <header className="page-header">
-        <h1 className="page-title">
-          Recommendation <span className="gradient-text">Engine</span>
-        </h1>
-        <p className="page-subtitle">
-          Select a seed track from the catalog to generate instant TF-IDF content-based recommendations, or let the system analyze your profile.
-        </p>
-      </header>
+    <div className="for-you-segment-view">
+      {/* ── Hero Banner ── */}
+      <section className="hero-card">
+        <div className="hero-ambient-glow" />
+        <div className="hero-inner">
+          <h1 className="hero-brand-title">For You</h1>
+          <p className="hero-subtitle">
+            AI-driven recommendations tailored to your taste profile and acoustic similarities.
+          </p>
 
-      {/* Control Box */}
-      <div className="glass-card control-card">
-        <div className="control-row">
-          <div className="control-group flex-1">
-            <label className="input-label">Select Seed Track:</label>
-            <select
-              value={selectedSeed}
-              onChange={handleSeedChange}
-              className="select-input"
+          <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              className="btn-accent-theme"
+              onClick={() => {
+                setSelectedSeedId("");
+                fetchRecommendations();
+              }}
             >
-              <option value="">-- Personal / Default Profile Recommendations --</option>
-              {allSongs.map((s) => (
-                <option key={s.song_id} value={s.song_id}>
-                  {s.song_name} — {s.artist} ({s.genre || "Music"})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="control-group">
-            <label className="input-label">Count:</label>
-            <select
-              value={limit}
-              onChange={(e) => setLimit(Number(e.target.value))}
-              className="select-input"
+              ⚡ Personalized Taste Radar
+            </button>
+            <button
+              type="button"
+              className="btn-secondary-pill"
+              onClick={() => {
+                if (candidateSongs.length > 0) {
+                  const randomSong = candidateSongs[Math.floor(Math.random() * candidateSongs.length)];
+                  setSelectedSeedId(randomSong.song_id);
+                }
+              }}
             >
-              <option value={4}>4 Songs</option>
-              <option value={8}>8 Songs</option>
-              <option value={12}>12 Songs</option>
-            </select>
-          </div>
-
-          <div className="control-group self-end">
-            <button className="btn btn-primary" onClick={() => fetchRecs()} disabled={loading}>
-              ⚡ Refresh
+              🎲 Surprise Me (Random Seed)
             </button>
           </div>
-        </div>
 
-        {engineType && (
-          <div className="engine-badge font-mono">
-            <span>Algorithm:</span> <strong>{engineType}</strong>
+          {/* Seed track selection chips */}
+          {candidateSongs.length > 0 && (
+            <div style={{ marginTop: "24px" }}>
+              <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "8px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Select Seed Track for Vector Matching:
+              </div>
+              <div className="chips-container">
+                <button
+                  type="button"
+                  className={`chip-item ${selectedSeedId === "" ? "active" : ""}`}
+                  onClick={() => setSelectedSeedId("")}
+                >
+                  Taste Centroid
+                </button>
+                {candidateSongs.slice(0, 6).map((s) => (
+                  <button
+                    key={s.song_id}
+                    type="button"
+                    className={`chip-item ${selectedSeedId === s.song_id ? "active" : ""}`}
+                    onClick={() => setSelectedSeedId(s.song_id)}
+                  >
+                    🎵 {s.song_name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── Recommendations Grid ── */}
+      <section className="catalog-section">
+        {loading ? (
+          <div className="catalog-empty-card">
+            <div className="empty-cylinder-icon">
+              <svg viewBox="0 0 24 24">
+                <ellipse cx="12" cy="5" rx="9" ry="3" />
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+              </svg>
+            </div>
+            <h3 className="catalog-empty-title">Computing vector similarities...</h3>
+          </div>
+        ) : recommendations.length === 0 ? (
+          <div className="catalog-empty-card">
+            <div className="empty-cylinder-icon">
+              <svg viewBox="0 0 24 24">
+                <ellipse cx="12" cy="5" rx="9" ry="3" />
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+              </svg>
+            </div>
+            <h3 className="catalog-empty-title">No recommendations computed</h3>
+            <p className="catalog-empty-desc">
+              Listen to tracks or add favorites to build your taste profile, or{" "}
+              <button
+                type="button"
+                onClick={() => fetchRecommendations()}
+                className="accent-theme-link"
+              >
+                refresh engine
+              </button>
+            </p>
+          </div>
+        ) : (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
+              <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "#fff" }}>
+                {selectedSeedId ? "⚡ Track-Based Recommendations" : "✨ Personalized For You"} ({recommendations.length} Tracks)
+              </h2>
+            </div>
+
+            <div className="songs-grid-wrapper">
+              {recommendations.map((song) => (
+                <SongCard key={song.song_id} song={song} />
+              ))}
+            </div>
           </div>
         )}
-      </div>
-
-      {/* Recommendations Grid */}
-      {loading ? (
-        <div className="loading-grid">
-          {[...Array(limit)].map((_, i) => (
-            <div key={i} className="skeleton-card" />
-          ))}
-        </div>
-      ) : recommendations.length > 0 ? (
-        <div className="song-grid">
-          {recommendations.map((rec) => (
-            <SongCard key={rec.song_id} song={rec} />
-          ))}
-        </div>
-      ) : (
-        <div className="empty-box">
-          <p>No recommendations generated. Try selecting a different seed track.</p>
-        </div>
-      )}
+      </section>
     </div>
   );
 }
