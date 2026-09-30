@@ -1,52 +1,55 @@
-# 🎵 SoundWave — Music Recommendation System
-
-A modern, full-stack **Music Recommendation System** built with **Streamlit**, **Scikit-Learn**, and **SQLite**, featuring a decoupled Frontend/Backend architecture, Content-Based Filtering with TF-IDF and Cosine Similarity, audio feature blending, user taste personalization, playlist management, and secure user authentication.
+# 🎵 TuneSphere AI Sound — Music Recommendation System
+> **Engineered with Antigravity AI**  
+> Full-Stack AI-Powered Music Discovery, Content-Based Recommendation Engine, and Dark-Cinematic Web Dashboard.
 
 ---
 
 ## 1. Project Overview
 
-The **SoundWave Music Recommendation System** delivers personalized track recommendations by combining:
-- **Metadata Similarity**: Analysis of track titles, artists, albums, genres, and languages using TF-IDF tokenization and Cosine Similarity.
-- **Acoustic Audio Profiles**: Blending normalized numeric audio features (`danceability`, `energy`, `valence`, `tempo`, `acousticness`, `instrumentalness`, `speechiness`) when available in the dataset.
-- **User Preference Personalization**: User taste centroid vectors constructed dynamically from listening history and favorited tracks.
-- **Interactive Dashboard**: Modern dark-themed user interface with real-time audio radar charts, search filters, and playlist controls.
+**TuneSphere AI Sound** is a production-grade, full-stack music recommendation platform that combines Machine Learning (TF-IDF vectorization & Cosine Similarity) with a modern dark-cinematic web interface and scalable FastAPI backend.
+
+Key Capabilities:
+- **AI Content-Based Recommendation**: Combines multi-attribute track metadata (title, artist, album, genre, language) with acoustic audio profiles (danceability, energy, valence, tempo, acousticness).
+- **Personalized Taste Modeling**: Constructs dynamic taste centroid vectors from user listening history, favorites, and playlists to discover tailored recommendations while filtering out duplicates.
+- **Dual Presentation Layers**:
+  1. **Next.js 16 Web Dashboard** (`frontend/`): Production React 19 UI with fluid audio preview playback, dynamic search, multi-factor filtering, playlist management, and user authentication.
+  2. **Streamlit Discovery App** (`frontend_streamlit/` & `app.py`): Interactive exploration dashboard for research, dataset analysis, and real-time radar charts.
+- **FastAPI REST API Backend** (`backend/`): High-performance RESTful API endpoints for catalog discovery, user auth (JWT / PBKDF2), playlists, history, and ML inferences.
+- **Kaggle Dataset Ingestion & Validation**: Flexible schema adapter supporting Spotify 114k Tracks, Spotify 1.2M+ Tracks, and external music CSV datasets.
 
 ---
 
 ## 2. System Architecture
 
-The application is structured into a clean logical separation between **Frontend** presentation and **Backend** domain services, data pipelines, recommendation algorithms, and SQLite persistence.
-
 ```text
-                           USER
-                            │
-                            ▼
-              ┌───────────────────────────┐
-              │     STREAMLIT FRONTEND    │
-              │  - Theme & Glassmorphism  │
-              │  - Pages (Home/Discover)  │
-              │  - Cards, Modals & Radars │
-              └─────────────┬─────────────┘
-                            │
-                            ▼
-              ┌───────────────────────────┐
-              │      BACKEND SERVICES     │
-              │  - Music Catalog Service  │
-              │  - User Analytics Service │
-              │  - Playlist & History     │
-              │  - Authentication Service │
-              └─────────────┬─────────────┘
-                            │
-          ┌─────────────────┼─────────────────┐
-          ▼                 ▼                 ▼
-  ┌───────────────┐ ┌───────────────┐ ┌───────────────┐
-  │ SQLITE DB     │ │  ML ENGINE    │ │  DATA LAYER   │
-  │ - Users       │ │ - TF-IDF      │ │ - Adapter     │
-  │ - History     │ │ - Cosine Sim  │ │ - Validator   │
-  │ - Playlists   │ │ - Audio Blend │ │ - Preprocess  │
-  │ - Likes       │ │ - Ranking     │ │ - Loader      │
-  └───────────────┘ └───────────────┘ └───────────────┘
+                                  USER BROWSER / CLIENT
+                                            │
+                                            ▼
+                       ┌─────────────────────────────────────────┐
+                       │          VERCEL SERVICES / GATEWAY      │
+                       │   /       ───► Next.js Frontend         │
+                       │   /api/*  ───► FastAPI Backend          │
+                       └────────────────────┬────────────────────┘
+                                            │
+                    ┌───────────────────────┴───────────────────────┐
+                    ▼                                               ▼
+      ┌───────────────────────────┐                   ┌───────────────────────────┐
+      │     NEXT.JS FRONTEND      │                   │      FASTAPI BACKEND      │
+      │  - React 19 + TypeScript  │                   │  - REST API Routing       │
+      │  - Dark-Cinematic Design  │  ◄─── REST ─────► │  - JWT & Password Hashing │
+      │  - Persistent Audio Player│      JSON API     │  - Services Orchestrator  │
+      │  - Playlist & Taste Studio│                   │  - TF-IDF ML Engine       │
+      └───────────────────────────┘                   └─────────────┬─────────────┘
+                                                                    │
+                                                ┌───────────────────┼───────────────────┐
+                                                ▼                   ▼                   ▼
+                                      ┌───────────────────┐ ┌───────────────┐ ┌───────────────────┐
+                                      │  SQLITE DATABASE  │ │  ML ENGINE    │ │   DATA PIPELINE   │
+                                      │  - Users & Auth   │ │ - TF-IDF      │ │  - Schema Adapter │
+                                      │  - Playlists      │ │ - Cosine Sim  │ │  - Validator      │
+                                      │  - History & Likes│ │ - Audio Blend │ │  - Preprocessor   │
+                                      │  - Repository     │ │ - Personalize │ │  - Caching Loader │
+                                      └───────────────────┘ └───────────────┘ └───────────────────┘
 ```
 
 ---
@@ -56,254 +59,168 @@ The application is structured into a clean logical separation between **Frontend
 ```text
 music-recommendation-system/
 │
-├── app.py                      # Main Streamlit application entrypoint & router
+├── frontend/                   # Next.js 16 Web Dashboard (Production UI)
+│   ├── app/                    # Next.js App Router pages
+│   │   ├── page.tsx            # Home dashboard & featured tracks
+│   │   ├── discover/           # Catalog search & genre filtering
+│   │   ├── recommendations/    # AI seed & personalized recommendations
+│   │   ├── favorites/          # Liked tracks collection
+│   │   ├── history/            # Listening history & playback logs
+│   │   ├── playlists/          # Custom playlist studio
+│   │   ├── login/ & register/  # User authentication pages
+│   │   └── profile/            # User activity & taste analytics
+│   ├── components/             # Reusable UI components (SongCard, PlayerDock, AppShell)
+│   ├── lib/                    # API client, auth context, and player hooks
+│   └── package.json            # Node.js dependencies
 │
-├── frontend/                   # UI presentation layer
-│   ├── __init__.py
-│   ├── theme.py                # Dark theme styling, glassmorphism, responsive CSS
-│   ├── components.py           # Hero, metrics, Plotly radar chart, uploader
-│   ├── navbar.py               # Top breadcrumbs and status bar
-│   ├── sidebar.py              # Navigation sidebar and session badge
-│   ├── cards.py                # Song cards, recommendation cards, details modal
-│   ├── empty_states.py         # Standardized empty state containers
-│   └── pages/                  # Page view controllers
-│       ├── __init__.py
-│       ├── home.py             # Hero, library metrics, genres, featured tracks
-│       ├── discover.py         # Full-text search and multi-factor filtering
-│       ├── recommendations.py  # Seed-track engine & personalized recommendations
-│       ├── favorites.py        # Liked songs collection
-│       ├── history.py          # Chronological listening timeline
-│       ├── playlists.py        # Custom user playlists manager
-│       ├── profile.py          # User activity stats & taste analytics
-│       └── login.py            # Secure authentication & registration
-│
-├── backend/                    # Core business logic & data pipeline
-│   ├── __init__.py
-│   │
-│   ├── data/                   # Data ingestion, validation & preprocessing
-│   │   ├── __init__.py
-│   │   ├── adapter.py          # Kaggle dataset column mapper and adapter
-│   │   ├── validator.py        # Schema integrity and constraint checker
-│   │   ├── loader.py           # CSV loading, caching, upload persistence
-│   │   └── preprocessing.py    # Text cleaning, normalization, audio bounds
-│   │
-│   ├── recommendation/         # Machine learning recommendation engine
-│   │   ├── __init__.py
-│   │   ├── content_based.py    # TF-IDF vectorizer + Cosine Similarity model
-│   │   ├── ranking.py          # Candidate deduplication, exclusion, ranking
-│   │   └── engine.py           # Unified recommendation facade & serialization
-│   │
+├── backend/                    # Core business logic & FastAPI REST API
+│   ├── main.py                 # FastAPI application instance & router mounts
+│   ├── api/                    # REST API endpoint modules
+│   │   ├── auth.py             # Login, register, current user endpoints
+│   │   ├── songs.py            # Search, genres, featured, track details
+│   │   ├── recommendations.py  # Seed & personalized recommendation endpoints
+│   │   ├── favorites.py        # Add, remove, list favorites
+│   │   ├── history.py          # Log playback, fetch listening history
+│   │   ├── playlists.py        # Playlist CRUD operations
+│   │   └── users.py            # User profile and stats
+│   ├── recommendation/         # Scikit-Learn TF-IDF Machine Learning Engine
+│   │   ├── content_based.py    # TF-IDF vectorizer + Cosine Similarity
+│   │   ├── ranking.py          # Candidate filtering & deduplication
+│   │   └── engine.py           # Unified model facade & serialization
+│   ├── data/                   # Data ingestion, schema mapping & normalization
+│   │   ├── adapter.py          # Kaggle column mapper & aliases resolver
+│   │   ├── validator.py        # Schema constraint & audio bounds checker
+│   │   ├── loader.py           # CSV loader & caching mechanism
+│   │   └── preprocessing.py    # Text feature engineering & normalization
 │   ├── database/               # SQLite persistence layer
-│   │   ├── __init__.py
-│   │   ├── connection.py       # Thread-safe SQLite connection & schema initialization
-│   │   ├── models.py           # Entity dataclasses
-│   │   └── repository.py       # Parameterized SQL repository queries
-│   │
-│   ├── auth/                   # Authentication & security
-│   │   ├── __init__.py
+│   │   ├── connection.py       # Thread-safe connection & schema init
+│   │   ├── models.py           # Dataclasses (User, Song, Playlist, History)
+│   │   └── repository.py       # Parameterized SQL queries
+│   ├── auth/                   # Authentication & security utilities
 │   │   ├── password.py         # PBKDF2-HMAC-SHA256 password hashing
-│   │   └── authentication.py   # Register, login, session validation
-│   │
-│   └── services/               # Application service orchestrators
-│       ├── __init__.py
-│       ├── music_service.py    # Catalog querying and filtering
-│       ├── user_service.py     # User registration and profile analytics
-│       ├── playlist_service.py # Playlist CRUD operations
-│       └── history_service.py  # Interaction logging and favorites
+│   │   ├── authentication.py   # User registration & verification
+│   │   └── jwt_utils.py        # JWT token generation & validation
+│   └── requirements.txt        # Production backend Python dependencies
 │
-├── data/                       # Data storage
-│   ├── raw/
-│   │   └── songs.csv           # Raw canonical music dataset
-│   └── processed/
-│       └── songs_processed.csv # Cleaned dataset with combined_features
+├── frontend_streamlit/         # Streamlit Interactive Discovery App
+│   ├── theme.py                # Dark theme styling & glassmorphism
+│   ├── cards.py                # Song & recommendation cards
+│   ├── components.py           # Plotly radar charts & upload widgets
+│   └── pages/                  # Streamlit view controllers
 │
-├── models/                     # Serialized ML artifacts
+├── data/                       # Dataset storage
+│   ├── raw/songs.csv           # Canonical input dataset
+│   └── processed/              # Preprocessed dataset with combined features
+│
+├── models/                     # Serialized ML models
 │   └── content_recommender.pkl # Serialized TF-IDF vectorizer & feature matrices
 │
-├── database/                   # Database files
-│   └── music.db                # SQLite database
+├── tests/                      # Automated test suite (41/41 tests passing)
+│   ├── test_adapter.py         # Kaggle schema adapter tests
+│   ├── test_auth.py            # Password hashing & JWT auth tests
+│   ├── test_data_loader.py     # CSV loading & validation tests
+│   ├── test_database.py        # SQLite repository tests
+│   ├── test_preprocessing.py   # Feature pipeline transformation tests
+│   ├── test_recommendation.py  # ML engine & ranking tests
+│   ├── test_services.py        # Service orchestrator tests
+│   └── test_ui_states.py       # Empty states & UI lifecycle tests
 │
-├── tests/                      # Automated unit test suite
-│   ├── test_data_loader.py     # Loader & CSV tests
-│   ├── test_preprocessing.py   # Pipeline transformation tests
-│   ├── test_database.py        # Database operations tests
-│   ├── test_adapter.py         # Kaggle adapter tests
-│   ├── test_auth.py            # Password hashing & auth tests
-│   ├── test_recommendation.py  # ML recommendation & ranking tests
-│   ├── test_services.py        # Service layer tests
-│   └── test_ui_states.py       # Empty state & validation tests
-│
-├── .streamlit/
-│   └── config.toml             # Streamlit server and theme configuration
-│
-├── requirements.txt            # Python dependencies
-├── .gitignore                  # Git exclusion rules
+├── vercel.json                 # Vercel Services configuration
+├── .vercelignore               # Serverless bundle optimization rules
+├── requirements.txt            # Root production Python dependencies
+├── requirements-streamlit.txt  # Streamlit local development dependencies
 └── README.md                   # System documentation
 ```
 
 ---
 
-## 4. Kaggle Dataset Integration
+## 4. Machine Learning Recommendation Algorithm
 
-### Recommended Dataset
-- **Dataset**: Spotify 114k Tracks Dataset (`maharshipandya/spotify-tracks-dataset`) or Spotify 1.2M+ Tracks.
-- **Link**: [Spotify Tracks Dataset on Kaggle](https://www.kaggle.com/datasets/maharshipandya/spotify-tracks-dataset)
-
-### Dataset Schema & Adapter
-The `backend.data.adapter` module dynamically maps diverse Kaggle dataset columns to the canonical schema:
-
-| Canonical Field | Kaggle Source Aliases | Description | Fallback Strategy |
-|---|---|---|---|
-| `song_id` | `track_id`, `id`, `spotify_id`, `uri` | Unique track identifier | Sequential identifier |
-| `song_name` | `track_name`, `title`, `name` | Song title | Required |
-| `artist` | `artists`, `artist_name`, `performer` | Artist / band name | Required (list strings cleaned) |
-| `album` | `album_name`, `album`, `release` | Album title | `"Unknown"` |
-| `genre` | `track_genre`, `genre`, `genres` | Music category/genre | `"Unknown"` |
-| `language` | `language`, `lang`, `locale` | Language code / name | `"Unknown"` (no fabrication) |
-| `year` | `year`, `release_year`, `release_date` | 4-digit release year | Extracted from date / nullable |
-| Audio Features | `danceability`, `energy`, `valence`, `tempo`, etc. | Acoustic numeric features | Clamped to bounds / optional |
-
-### Dataset Setup Instructions
-
-#### Option A: Upload Through Web UI
-1. Start the application: `streamlit run app.py`
-2. Navigate to **⚙️ Settings / Dataset** or use the uploader on the **🏠 Home** page.
-3. Upload your CSV file. The built-in adapter will automatically normalize columns and save it to `data/raw/songs.csv`.
-
-#### Option B: Kaggle API CLI
-If your Kaggle API key (`~/.kaggle/kaggle.json` or `KAGGLE_USERNAME` / `KAGGLE_KEY`) is configured:
-```bash
-kaggle datasets download -d maharshipandya/spotify-tracks-dataset -p data/raw --unzip
-```
-Rename the downloaded CSV to `data/raw/songs.csv`.
-
-> **Note**: If Kaggle API credentials are not set up on the host machine, manual download from the Kaggle URL above is required.
-
----
-
-## 5. Machine Learning Recommendation Algorithm
-
-### 1. Feature Preprocessing
-The `backend.data.preprocessing` pipeline creates a unified text representation:
+### 1. Unified Feature Preprocessing
+The preprocessing pipeline engineers a comprehensive text representation for every song:
 $$\text{combined\_features} = \text{song\_name} \oplus \text{artist} \oplus \text{album} \oplus \text{genre} \oplus \text{language}$$
 
-### 2. TF-IDF & Cosine Similarity
-- Text features are tokenized using `TfidfVectorizer` (sublinear term frequency, unigrams & bigrams).
-- Pairwise cosine similarity is computed between query feature vector $\vec{q}$ and library matrix $M$:
+### 2. TF-IDF Tokenization & Cosine Similarity
+- Text features are tokenized with sublinear term frequency weighting across unigrams and bigrams.
+- Pairwise cosine similarity is computed between query vectors $\vec{q}$ and the library catalog matrix $M$:
 $$\text{Sim}_{\text{text}}(q, s) = \frac{\vec{q} \cdot \vec{s}}{\|\vec{q}\| \|\vec{s}\|}$$
 
-### 3. Audio Feature Blending
-When numeric audio features are present, audio vectors are normalized with `MinMaxScaler` and blended:
+### 3. Acoustic Audio Blending
+When numeric audio features (`danceability`, `energy`, `valence`, `tempo`, `acousticness`, `instrumentalness`, `speechiness`) are present:
 $$\text{Sim}_{\text{total}}(q, s) = 0.75 \times \text{Sim}_{\text{text}}(q, s) + 0.25 \times \text{Sim}_{\text{audio}}(q, s)$$
 
-### 4. User Profile Personalization
-When generating personalized recommendations for a user:
-- Seed songs from user's favorites and recent listening history are retrieved.
+### 4. User Preference Personalization
+Personalized recommendations are calculated dynamically:
+- Seed tracks from user favorites and listening history are aggregated.
 - A user preference centroid vector $\vec{u}_{\text{centroid}} = \frac{1}{|S|} \sum_{s \in S} \vec{s}$ is calculated.
-- Top candidate songs matching the centroid are ranked, strictly excluding tracks the user has already played or favorited.
+- Top candidate songs matching the centroid are ranked, automatically excluding songs already in the user's history.
 
 ---
 
-## 6. Database Architecture (SQLite)
+## 5. Getting Started & Local Development
 
-The SQLite database is initialized automatically at `database/music.db`.
+### Prerequisites
+- Python 3.10+
+- Node.js 18+ and npm
 
-### Schema Design
-- **`users`**: `id`, `username`, `email`, `password_hash`, `created_at`
-- **`songs`**: `id`, `song_id`, `song_name`, `artist`, `album`, `genre`, `language`, `year`
-- **`listening_history`**: `id`, `user_id`, `song_id`, `action`, `played_at` (Foreign Key $\to$ `users.id`)
-- **`likes`**: `id`, `user_id`, `song_id`, `created_at` (Unique constraint on `user_id, song_id`)
-- **`dislikes`**: `id`, `user_id`, `song_id`, `created_at`
-- **`playlists`**: `id`, `user_id`, `playlist_name`, `created_at`
-- **`playlist_songs`**: `id`, `playlist_id`, `song_id`, `added_at`
-
----
-
-## 7. Authentication & Security
-
-- **Password Hashing**: Implements salted **PBKDF2-HMAC-SHA256** with 100,000 iterations and cryptographically random salts via `secrets.token_hex`.
-- **Verification**: Constant-time verification using `hmac.compare_digest` to prevent timing attacks.
-- **Session State**: User password hashes are sanitized before populating Streamlit session state.
-
----
-
-## 8. Installation & Running Locally
-
-### Step 1: Clone Repository
+### 1. Clone the Repository
 ```bash
-git clone <repository-url>
-cd "music recommendation system"
+git clone https://github.com/kaanchikongesh-svg/tunesphere-ai-sound.git
+cd tunesphere-ai-sound
 ```
 
-### Step 2: Set Up Virtual Environment
+### 2. Set Up Backend
 ```bash
-# Windows
+# Create and activate virtual environment
 python -m venv .venv
-.venv\Scripts\activate
+.venv\Scripts\activate     # Windows
+# source .venv/bin/activate  # macOS / Linux
 
-# macOS / Linux
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-### Step 3: Install Dependencies
-```bash
+# Install dependencies
 pip install --upgrade pip
 pip install -r requirements.txt
-```
 
-### Step 4: Run Application
+# Start FastAPI backend
+uvicorn backend.main:app --reload --port 8000
+```
+Backend API will run at `http://localhost:8000` (Swagger docs at `http://localhost:8000/docs`).
+
+### 3. Set Up Next.js Frontend
 ```bash
+cd frontend
+npm install
+npm run dev
+```
+Open your browser at `http://localhost:3000`.
+
+### 4. Run Streamlit App (Optional)
+```bash
+pip install -r requirements-streamlit.txt
 python -m streamlit run app.py
 ```
-Open your browser at `http://localhost:8501`.
 
 ---
 
-## 9. Automated Testing
+## 6. Automated Testing
 
-To run the complete automated unit test suite:
-
+Run the full automated test suite:
 ```bash
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
-
-All 40 unit tests cover:
-- CSV Loading, Uploading, and Parser Resilience (`test_data_loader.py`)
-- Kaggle Dataset Adaptation and Schema Mapping (`test_adapter.py`)
-- Data Preprocessing, Normalization, and Audio Bounding (`test_preprocessing.py`)
-- SQLite CRUD, Playlists, Likes, and History (`test_database.py`)
-- Password Hashing, User Registration, and Auth (`test_auth.py`)
-- Content-Based & Personalized Recommendation Engine (`test_recommendation.py`)
-- High-level Business Services (`test_services.py`)
-- UI Empty States and Validation Handling (`test_ui_states.py`)
+All **41/41 unit and integration tests** pass across data loading, Kaggle adapter, preprocessing, SQLite repository, auth, and ML recommendation logic.
 
 ---
 
-## 10. Deployment Readiness
+## 7. Deployment (Vercel)
 
-- **Streamlit Community Cloud**:
-  - Entrypoint: `app.py`
-  - Dependencies: `requirements.txt`
-  - Configuration: `.streamlit/config.toml`
-- **Docker / Cloud Run**:
-  ```dockerfile
-  FROM python:3.11-slim
-  WORKDIR /app
-  COPY requirements.txt .
-  RUN pip install --no-cache-dir -r requirements.txt
-  COPY . .
-  EXPOSE 8501
-  CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
-  ```
+The application is configured to deploy as a unified **Vercel Services** application:
+- `/` routes to the Next.js frontend (`frontend/`)
+- `/api/*` routes to the FastAPI backend (`backend/` with entrypoint `main:app`)
+
+To deploy, connect the GitHub repository to Vercel or run `vercel deploy`.
 
 ---
 
-## 11. Troubleshooting
+## 8. Credits
 
-- **Dataset Not Found**:
-  Navigate to **⚙️ Settings / Dataset** or **🏠 Home** and upload your CSV.
-- **Cache Refreshing**:
-  Click **Clear Cache & Reload Catalog** in **Settings** to re-index the catalog and re-fit recommendation models.
-- **Missing Audio Features**:
-  The system automatically detects which features exist; missing audio columns gracefully default to text-based similarity without raising errors.
+Built and designed with **Antigravity AI** by [kaanchikongesh-svg](https://github.com/kaanchikongesh-svg).
