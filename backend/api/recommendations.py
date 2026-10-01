@@ -17,6 +17,7 @@ router = APIRouter(prefix="/recommendations", tags=["Recommendations"])
 def get_recommendations(
     song_id: Optional[str] = Query(None, description="Seed song ID for content-based matching"),
     limit: int = Query(6, ge=1, le=50, description="Number of recommendations"),
+    language_mode: str = Query("same", description="'same' for same language, 'any' for cross-language"),
     current_user: Optional[dict] = Depends(get_optional_user),
 ):
     """Generates recommendations either for a seed track or tailored to the logged-in user."""
@@ -25,10 +26,11 @@ def get_recommendations(
         return {"recommendations": []}
 
     if song_id:
-        recs = recommend_songs(song_id=str(song_id), df=df, n_recommendations=limit)
+        recs = recommend_songs(song_id=str(song_id), df=df, n_recommendations=limit, language_mode=language_mode)
         return {
             "type": "content_based",
             "seed_song_id": song_id,
+            "language_mode": language_mode,
             "recommendations": recs,
         }
 
@@ -46,13 +48,14 @@ def get_recommendations(
 def get_seed_recommendations(
     song_id: str,
     limit: int = Query(6, ge=1, le=50),
+    language_mode: str = Query("same", description="'same' or 'any'"),
 ):
     """Generates acoustic and lexical similar tracks for a specific song ID."""
     df = get_cached_df()
     if df.empty:
         return {"recommendations": []}
-    recs = recommend_songs(song_id=str(song_id), df=df, n_recommendations=limit)
-    return {"seed_song_id": song_id, "recommendations": recs}
+    recs = recommend_songs(song_id=str(song_id), df=df, n_recommendations=limit, language_mode=language_mode)
+    return {"seed_song_id": song_id, "language_mode": language_mode, "recommendations": recs}
 
 
 @router.get("/personalized")

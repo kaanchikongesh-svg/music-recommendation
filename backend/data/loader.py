@@ -15,7 +15,13 @@ from backend.data.validator import (
 )
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-DEFAULT_RAW_DATA_PATH = BASE_DIR / "data" / "raw" / "songs.csv"
+DEFAULT_PROCESSED_PATH = BASE_DIR / "data" / "processed" / "songs_processed.csv"
+DEFAULT_MILLSONG_PATH = BASE_DIR / "data" / "raw" / "spotify_millsongdata.csv"
+DEFAULT_RAW_DATA_PATH = (
+    DEFAULT_PROCESSED_PATH
+    if DEFAULT_PROCESSED_PATH.exists()
+    else (DEFAULT_MILLSONG_PATH if DEFAULT_MILLSONG_PATH.exists() else (BASE_DIR / "data" / "raw" / "songs.csv"))
+)
 
 
 def load_dataset(file_path: Union[str, Path] = DEFAULT_RAW_DATA_PATH) -> ValidationResult:
@@ -182,10 +188,10 @@ def get_dataset_statistics(df: Optional[pd.DataFrame]) -> Dict[str, Any]:
 
 def filter_songs(
     df: Optional[pd.DataFrame],
-    search_query: str = "",
-    artist: str = "All",
-    genre: str = "All",
-    language: str = "All",
+    search_query: Any = "",
+    artist: Any = "All",
+    genre: Any = "All",
+    language: Any = "All",
     year_range: Optional[Tuple[int, int]] = None,
 ) -> pd.DataFrame:
     """Filters songs dataframe according to search keywords and selected facet filters."""
@@ -194,33 +200,45 @@ def filter_songs(
 
     filtered = df.copy()
 
-    # Search query in song_name, artist, album
-    if search_query and search_query.strip():
-        q = search_query.strip().lower()
-        mask = (
-            filtered["song_name"].astype(str).str.lower().str.contains(q, na=False)
-            | filtered["artist"].astype(str).str.lower().str.contains(q, na=False)
-            | filtered["album"].astype(str).str.lower().str.contains(q, na=False)
-        )
+    # Search query in song_name, artist, album, lyrics
+    q_str = str(search_query or "").strip().lower()
+    if search_query and not isinstance(search_query, str) and hasattr(search_query, "default"):
+        q_str = ""
+
+    if q_str:
+        mask = pd.Series(False, index=filtered.index)
+        for col in ["song_name", "artist", "album", "lyrics"]:
+            if col in filtered.columns:
+                mask = mask | filtered[col].astype(str).str.lower().str.contains(q_str, na=False)
         filtered = filtered[mask]
 
     # Artist filter
-    if artist and artist != "All":
-        filtered = filtered[filtered["artist"] == artist]
+    artist_str = str(artist or "All").strip()
+    if hasattr(artist, "default"):
+        artist_str = "All"
+    if artist_str and artist_str != "All" and "artist" in filtered.columns:
+        filtered = filtered[filtered["artist"].astype(str) == artist_str]
 
     # Genre filter
-    if genre and genre != "All":
-        filtered = filtered[filtered["genre"] == genre]
+    genre_str = str(genre or "All").strip()
+    if hasattr(genre, "default"):
+        genre_str = "All"
+    if genre_str and genre_str != "All" and "genre" in filtered.columns:
+        filtered = filtered[filtered["genre"].astype(str) == genre_str]
 
     # Language filter
-    if language and language != "All":
-        filtered = filtered[filtered["language"] == language]
+    lang_str = str(language or "All").strip()
+    if hasattr(language, "default"):
+        lang_str = "All"
+    if lang_str and lang_str != "All" and "language" in filtered.columns:
+        filtered = filtered[filtered["language"].astype(str) == lang_str]
 
     # Year range filter
-    if year_range and len(year_range) == 2:
-        year_num = pd.to_numeric(filtered["year"], errors="coerce")
-        filtered = filtered[
-            (year_num >= year_range[0]) & (year_num <= year_range[1])
-        ]
+    if year_range and len(year_range) == 2 and "year" in filtered.columns:
+        min_y, max_y = year_range
+        if min_y is not None and max_y is not None:
+            year_num = pd.to_numeric(filtered["year"], errors="coerce")
+            filtered = filtered[(year_num >= min_y) & (year_num <= max_y)]
 
     return filtered
+

@@ -1,24 +1,19 @@
-"""Data preprocessing pipeline module for Music Recommendation System."""
+"""Data preprocessing pipeline for text normalization, feature engineering, and data quality validation."""
 
-from dataclasses import dataclass, field
-from datetime import datetime
+from dataclasses import asdict, dataclass, field
+import json
+import os
 from pathlib import Path
 import re
 from typing import Any, Dict, List, Optional, Tuple, Union
-
 import numpy as np
 import pandas as pd
 
-from backend.data.validator import (
-    OPTIONAL_AUDIO_FEATURES,
-    REQUIRED_COLUMNS,
-    get_optional_features,
-)
+from backend.data.adapter import adapt_kaggle_dataset
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 DEFAULT_PROCESSED_DATA_PATH = BASE_DIR / "data" / "processed" / "songs_processed.csv"
 
-# Typical bounded audio feature columns [0.0, 1.0]
 BOUNDED_AUDIO_FEATURES = [
     "danceability",
     "energy",
@@ -26,234 +21,261 @@ BOUNDED_AUDIO_FEATURES = [
     "acousticness",
     "instrumentalness",
     "speechiness",
+    "liveness",
 ]
 
 
 @dataclass
 class PreprocessingReport:
-    """Detailed summary of transformations applied during preprocessing."""
+    """Detailed summary of data quality, cleaning steps, and row counts."""
 
+    source_rows: int = 0
     original_rows: int = 0
+    valid_rows: int = 0
     final_rows: int = 0
+    invalid_rows: int = 0
+    duplicate_rows: int = 0
     duplicates_removed: int = 0
-    missing_song_names_removed: int = 0
+    final_rows_imported: int = 0
+    missing_lyrics: int = 0
+    missing_artists: int = 0
     missing_artists_removed: int = 0
+    missing_song_names: int = 0
+    missing_song_names_removed: int = 0
     invalid_years_handled: int = 0
+    invalid_audio_values_fixed: List[str] = field(default_factory=list)
     available_audio_features: List[str] = field(default_factory=list)
     missing_audio_features: List[str] = field(default_factory=list)
-    invalid_audio_values_fixed: Dict[str, int] = field(default_factory=dict)
-    unique_genres: int = 0
     unique_artists: int = 0
-    unique_languages: int = 0
+    unique_songs: int = 0
+    features_engineered: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
 
 
 @dataclass
 class PreprocessingResult:
-    """Encapsulates the outcome of dataset preprocessing."""
+    """Result container supporting both attribute access and tuple unpacking."""
 
-    is_success: bool
+    is_success: bool = True
     df: Optional[pd.DataFrame] = None
-    report: PreprocessingReport = field(default_factory=PreprocessingReport)
+    report: Optional[PreprocessingReport] = None
     errors: List[str] = field(default_factory=list)
+    error_message: Optional[str] = None
+
+    def __iter__(self):
+        yield self.df if self.df is not None else pd.DataFrame()
+        yield self.report if self.report is not None else PreprocessingReport()
+
+    def __getitem__(self, index: int):
+        items = (self.df if self.df is not None else pd.DataFrame(), self.report if self.report is not None else PreprocessingReport())
+        return items[index]
+
+
+def clean_text_field(text: Any) -> str:
+    """Cleans a single text string by stripping and normalizing whitespace."""
+    if text is None or pd.isna(text):
+        return ""
+    val = str(text).strip()
+    val = re.sub(r"\s+", " ", val)
+    return val
 
 
 def clean_text(text: Any) -> str:
-    """Cleans a single text value by stripping whitespace and collapsing multiple spaces."""
-    if text is None or pd.isna(text):
-        return ""
-    s = str(text).strip()
-    return re.sub(r"\s+", " ", s)
+    return clean_text_field(text)
 
 
 def normalize_text(text: Any) -> str:
-    """Normalizes text for matching and recommendation tokens by lowercasing."""
-    return clean_text(text).lower()
+    return clean_text_field(text).lower()
 
 
-def clean_year_column(series: pd.Series) -> Tuple[pd.Series, int]:
-    """Cleans release year column, validating range and converting valid values to nullable integer."""
-    current_year = datetime.now().year
-    numeric_years = pd.to_numeric(series, errors="coerce")
-
-    # Flag invalid years (non-numeric, < 1800, or > current_year + 5)
-    invalid_mask = (
-        numeric_years.isna()
-        | (numeric_years < 1800)
-        | (numeric_years > current_year + 5)
-    )
-    invalid_count = int(invalid_mask.sum())
-
-    cleaned_years = numeric_years.copy()
-    cleaned_years[invalid_mask] = np.nan
-
-    return cleaned_years.astype("Int64"), invalid_count
+def clean_year_column(series: pd.Series) -> pd.Series:
+    from backend.data.adapter import extract_year_from_value
+    return series.apply(extract_year_from_value)
 
 
-def validate_and_clean_audio_features(
-    df: pd.DataFrame, detected_features: List[str]
-) -> Tuple[pd.DataFrame, Dict[str, int]]:
-    """Validates and cleans optional audio features without fabricating missing columns."""
-    cleaned_df = df.copy()
-    fixed_counts: Dict[str, int] = {}
-
-    for feat in detected_features:
-        if feat not in cleaned_df.columns:
-            continue
-
-        numeric_col = pd.to_numeric(cleaned_df[feat], errors="coerce")
-        fixed = 0
-
-        if feat in BOUNDED_AUDIO_FEATURES:
-            out_of_bounds = (numeric_col < 0.0) | (numeric_col > 1.0)
-            fixed += int(out_of_bounds.sum()) + int(numeric_col.isna().sum())
-            median_val = numeric_col.median()
-            fill_val = median_val if pd.notna(median_val) else 0.5
-            cleaned_col = numeric_col.fillna(fill_val).clip(lower=0.0, upper=1.0)
-        elif feat == "popularity":
-            out_of_bounds = (numeric_col < 0) | (numeric_col > 100)
-            fixed += int(out_of_bounds.sum()) + int(numeric_col.isna().sum())
-            median_val = numeric_col.median()
-            fill_val = median_val if pd.notna(median_val) else 50
-            cleaned_col = numeric_col.fillna(fill_val).clip(lower=0, upper=100)
-        elif feat == "tempo":
-            invalid_tempo = (numeric_col <= 0) | numeric_col.isna()
-            fixed += int(invalid_tempo.sum())
-            median_val = numeric_col[numeric_col > 0].median()
-            fill_val = median_val if pd.notna(median_val) else 120.0
-            cleaned_col = numeric_col.mask(invalid_tempo, fill_val)
-        else:
-            invalid_num = numeric_col.isna()
-            fixed += int(invalid_num.sum())
-            median_val = numeric_col.median()
-            fill_val = median_val if pd.notna(median_val) else 0.0
-            cleaned_col = numeric_col.fillna(fill_val)
-
-        cleaned_df[feat] = cleaned_col
-        if fixed > 0:
-            fixed_counts[feat] = fixed
-
-    return cleaned_df, fixed_counts
+def validate_and_clean_audio_features(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[str]]:
+    clean_df = df.copy()
+    fixed_cols: List[str] = []
+    
+    for col in BOUNDED_AUDIO_FEATURES:
+        if col in clean_df.columns:
+            orig = pd.to_numeric(clean_df[col], errors="coerce")
+            needs_fix = ((orig < 0.0) | (orig > 1.0)).any() or orig.isna().any()
+            if needs_fix:
+                fixed_cols.append(col)
+            clean_df[col] = orig.clip(0.0, 1.0)
+            
+    if "tempo" in clean_df.columns:
+        tempo_orig = pd.to_numeric(clean_df["tempo"], errors="coerce")
+        if (tempo_orig <= 0).any() or tempo_orig.isna().any():
+            if "tempo" not in fixed_cols:
+                fixed_cols.append("tempo")
+        # Replace non-positive tempo with fallback median or positive value
+        clean_df["tempo"] = tempo_orig.apply(lambda v: 120.0 if pd.isna(v) or v <= 0 else float(v))
+        
+    return clean_df, fixed_cols
 
 
-def create_combined_features(df: pd.DataFrame) -> pd.Series:
-    """Constructs a unified, normalized text feature combining metadata for TF-IDF."""
-    song_names = df["song_name"].apply(normalize_text)
-    artists = df["artist"].apply(normalize_text)
-    albums = df["album"].apply(normalize_text)
-    genres = df["genre"].apply(normalize_text)
-    languages = df["language"].apply(normalize_text)
+def clean_lyrics_for_feature(text: Any, max_words: int = 250) -> str:
+    """Extracts and normalizes clean lyrical tokens for TF-IDF feature engineering."""
+    if text is None or pd.isna(text):
+        return ""
+    val = str(text).replace("\r\n", " ").replace("\n", " ")
+    val = re.sub(r"[^\w\s]", " ", val)
+    val = re.sub(r"\s+", " ", val).strip().lower()
+    words = val.split()
+    if len(words) > max_words:
+        words = words[:max_words]
+    return " ".join(words)
 
-    combined = (
-        song_names
-        + " "
-        + artists
-        + " "
-        + albums
-        + " "
-        + genres
-        + " "
-        + languages
-    )
-    return combined.apply(lambda s: re.sub(r"\s+", " ", s).strip())
+
+def create_combined_features(row: pd.Series) -> str:
+    """Builds a unified text feature string from song_name, artist, album, genre, language, and lyrics."""
+    parts: List[str] = []
+
+    for col in ["song_name", "artist", "album", "genre", "language"]:
+        val = row.get(col, None)
+        if val is not None and not pd.isna(val):
+            cleaned = clean_text_field(val)
+            if cleaned and cleaned.lower() not in ("unknown", "none", "nan"):
+                parts.append(cleaned.lower())
+
+    lyrics = row.get("lyrics", None)
+    if lyrics is not None and not pd.isna(lyrics):
+        lyrics_feat = clean_lyrics_for_feature(lyrics, max_words=200)
+        if lyrics_feat:
+            parts.append(lyrics_feat)
+
+    return " ".join(parts)
 
 
 def preprocess_dataset(
-    df: Optional[pd.DataFrame],
-    save_processed: bool = True,
-    processed_path: Union[str, Path] = DEFAULT_PROCESSED_DATA_PATH,
+    df: pd.DataFrame,
+    report_path: Optional[Union[str, Path]] = None,
+    save_processed: bool = False,
+    output_path: Optional[Union[str, Path]] = None,
+    processed_path: Optional[Union[str, Path]] = None,
 ) -> PreprocessingResult:
-    """Executes the complete preprocessing pipeline on a raw songs DataFrame."""
+    """Cleans, adapts, and feature-engineers a raw music DataFrame."""
+    dest_path = output_path or processed_path
+
     if df is None or df.empty:
+        rep_empty = PreprocessingReport(
+            source_rows=0,
+            original_rows=0,
+            warnings=["Empty input DataFrame."],
+        )
         return PreprocessingResult(
             is_success=False,
             df=None,
-            report=PreprocessingReport(),
-            errors=["Input DataFrame is empty or None."],
+            report=rep_empty,
+            errors=["Empty input DataFrame."],
+            error_message="Empty input DataFrame.",
         )
 
-    # 1. Verify required columns exist
-    missing_req = [col for col in REQUIRED_COLUMNS if col not in df.columns]
-    if missing_req:
-        return PreprocessingResult(
-            is_success=False,
-            df=None,
-            report=PreprocessingReport(original_rows=len(df)),
-            errors=[
-                f"Cannot preprocess dataset missing required columns: {', '.join(missing_req)}"
-            ],
-        )
-
-    raw_df = df.copy()
-    original_rows = len(raw_df)
-
-    # Clean strings of required columns
-    for col in ["song_id", "song_name", "artist", "album", "genre", "language"]:
-        raw_df[col] = raw_df[col].apply(clean_text)
-
-    # Handle critical missing values
-    missing_names_mask = raw_df["song_name"] == ""
-    missing_song_names_count = int(missing_names_mask.sum())
-    cleaned_df = raw_df[~missing_names_mask].copy()
-
-    missing_artists_mask = cleaned_df["artist"] == ""
-    missing_artists_count = int(missing_artists_mask.sum())
-    cleaned_df = cleaned_df[~missing_artists_mask].copy()
-
-    missing_ids_mask = cleaned_df["song_id"] == ""
-    cleaned_df = cleaned_df[~missing_ids_mask].copy()
-
-    # Deduplicate records by song_id
-    before_dedup = len(cleaned_df)
-    cleaned_df = cleaned_df.drop_duplicates(subset=["song_id"], keep="first").copy()
-    duplicates_removed = before_dedup - len(cleaned_df)
-
-    # Impute missing non-critical metadata
-    cleaned_df["album"] = cleaned_df["album"].replace("", "Unknown")
-    cleaned_df["genre"] = cleaned_df["genre"].replace("", "Unknown")
-    cleaned_df["language"] = cleaned_df["language"].replace("", "Unknown")
-
-    # Clean release year column
-    cleaned_df["year"], invalid_years_count = clean_year_column(cleaned_df["year"])
-
-    # Clean audio features if present
-    detected_features = get_optional_features(cleaned_df)
-    missing_features = [f for f in OPTIONAL_AUDIO_FEATURES if f not in detected_features]
-    cleaned_df, fixed_audio_counts = validate_and_clean_audio_features(
-        cleaned_df, detected_features
-    )
-
-    # Create combined features for recommendation engine
-    cleaned_df["combined_features"] = create_combined_features(cleaned_df)
-
-    final_rows = len(cleaned_df)
-    unique_genres = int(cleaned_df["genre"].nunique())
-    unique_artists = int(cleaned_df["artist"].nunique())
-    unique_languages = int(cleaned_df["language"].nunique())
-
+    clean_working_df = df.copy()
+    initial_len = len(clean_working_df)
     report = PreprocessingReport(
-        original_rows=original_rows,
-        final_rows=final_rows,
-        duplicates_removed=duplicates_removed,
-        missing_song_names_removed=missing_song_names_count,
-        missing_artists_removed=missing_artists_count,
-        invalid_years_handled=invalid_years_count,
-        available_audio_features=detected_features,
-        missing_audio_features=missing_features,
-        invalid_audio_values_fixed=fixed_audio_counts,
-        unique_genres=unique_genres,
-        unique_artists=unique_artists,
-        unique_languages=unique_languages,
+        source_rows=initial_len,
+        original_rows=initial_len,
     )
 
-    # Save processed dataset to disk if requested
-    if save_processed and final_rows > 0:
-        target_path = Path(processed_path)
-        target_path.parent.mkdir(parents=True, exist_ok=True)
-        cleaned_df.to_csv(target_path, index=False)
+    # 1. Adapt schema if needed
+    adapted_df, adapt_rep = adapt_kaggle_dataset(clean_working_df)
+    if not adapt_rep.is_adapted or adapted_df.empty:
+        report.warnings.extend(adapt_rep.warnings)
+        return PreprocessingResult(
+            is_success=False,
+            df=None,
+            report=report,
+            errors=adapt_rep.warnings,
+            error_message=str(adapt_rep.warnings),
+        )
+
+    report.invalid_years_handled = adapt_rep.invalid_years_handled
+
+    # Clean text values
+    for col in ["song_name", "artist"]:
+        if col in adapted_df.columns:
+            adapted_df[col] = adapted_df[col].apply(clean_text_field)
+
+    # 2. Track missing song_name and artist
+    missing_song_mask = adapted_df["song_name"].fillna("").str.strip() == ""
+    missing_artist_mask = adapted_df["artist"].fillna("").str.strip() == ""
+
+    report.missing_song_names = int(missing_song_mask.sum())
+    report.missing_song_names_removed = report.missing_song_names
+    report.missing_artists = int(missing_artist_mask.sum())
+    report.missing_artists_removed = report.missing_artists
+
+    if "lyrics" in adapted_df.columns:
+        report.missing_lyrics = int(
+            adapted_df["lyrics"].isna().sum() + (adapted_df["lyrics"].fillna("").str.strip() == "").sum()
+        )
+
+    # Filter out missing required fields
+    valid_mask = (~missing_song_mask) & (~missing_artist_mask)
+    report.invalid_rows = int((~valid_mask).sum())
+    clean_df = adapted_df[valid_mask].copy()
+
+    # Clean year if present
+    if "year" in clean_df.columns:
+        if report.invalid_years_handled == 0:
+            from backend.data.adapter import extract_year_from_value
+            cleaned_years = clean_df["year"].apply(extract_year_from_value)
+            invalid_years = int((clean_df["year"].notna() & cleaned_years.isna()).sum())
+            report.invalid_years_handled = invalid_years
+            clean_df["year"] = cleaned_years
+
+    # Audio features cleaning
+    audio_cols_present = [c for c in BOUNDED_AUDIO_FEATURES + ["tempo"] if c in clean_df.columns]
+    report.available_audio_features = audio_cols_present
+    report.missing_audio_features = [c for c in BOUNDED_AUDIO_FEATURES + ["tempo"] if c not in clean_df.columns]
+    
+    clean_df, fixed_audio = validate_and_clean_audio_features(clean_df)
+    report.invalid_audio_values_fixed = fixed_audio
+
+    # 4. Detect and remove duplicate records
+    subset_cols = ["artist", "song_name"]
+    if "source_link" in clean_df.columns and clean_df["source_link"].notna().any():
+        subset_cols.append("source_link")
+    elif "song_id" in clean_df.columns:
+        subset_cols = ["song_id"]
+
+    dupe_count = int(clean_df.duplicated(subset=subset_cols).sum())
+    report.duplicate_rows = dupe_count
+    report.duplicates_removed = dupe_count
+    clean_df = clean_df.drop_duplicates(subset=subset_cols).reset_index(drop=True)
+
+    report.valid_rows = len(clean_df)
+    report.final_rows = len(clean_df)
+    report.final_rows_imported = len(clean_df)
+    report.unique_artists = int(clean_df["artist"].nunique()) if "artist" in clean_df.columns else 0
+    report.unique_songs = int(clean_df["song_name"].nunique()) if "song_name" in clean_df.columns else 0
+
+    # 5. Feature Engineering
+    clean_df["combined_features"] = clean_df.apply(create_combined_features, axis=1)
+    report.features_engineered = ["combined_features"]
+
+    # 6. Save data quality report if requested
+    if report_path:
+        r_path = Path(report_path)
+        r_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(r_path, "w", encoding="utf-8") as f:
+            json.dump(report.to_dict(), f, indent=2)
+
+    # 7. Save processed csv if requested
+    if save_processed or dest_path:
+        dest = Path(dest_path or DEFAULT_PROCESSED_DATA_PATH)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        clean_df.to_csv(dest, index=False)
 
     return PreprocessingResult(
         is_success=True,
-        df=cleaned_df,
+        df=clean_df,
         report=report,
-        errors=[],
     )
+

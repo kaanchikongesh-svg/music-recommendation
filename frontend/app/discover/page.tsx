@@ -1,23 +1,39 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import SongCard from "@/components/SongCard";
-import { apiListSongs, apiGenres, Song } from "@/lib/api";
+import SongDetailsModal from "@/components/SongDetailsModal";
+import { apiListSongs, apiGenres, apiLanguages, Song, Recommendation } from "@/lib/api";
+import { Search, Globe, Music2, Disc3 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-export default function DiscoverPage() {
+function DiscoverContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("query") || "";
+  const initialLang = searchParams.get("language") || "";
+
   const [songs, setSongs] = useState<Song[]>([]);
   const [genres, setGenres] = useState<string[]>([]);
+  const [languages, setLanguages] = useState<string[]>([]);
   const [selectedGenre, setSelectedGenre] = useState<string>("");
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(initialLang);
+  const [searchQuery, setSearchQuery] = useState<string>(initialQuery);
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [total, setTotal] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [selectedSongDetails, setSelectedSongDetails] = useState<Song | Recommendation | null>(null);
 
   useEffect(() => {
-    apiGenres()
-      .then((res) => setGenres(res.genres || []))
-      .catch((err) => console.error("Failed to load genres", err));
+    Promise.all([
+      apiGenres().catch(() => ({ genres: [] })),
+      apiLanguages().catch(() => ({ languages: [] })),
+    ]).then(([genreRes, langRes]) => {
+      setGenres(genreRes.genres || []);
+      setLanguages(langRes.languages || []);
+    });
   }, []);
 
   useEffect(() => {
@@ -27,8 +43,9 @@ export default function DiscoverPage() {
     apiListSongs({
       query: searchQuery || undefined,
       genre: selectedGenre || undefined,
+      language: selectedLanguage || undefined,
       page: page,
-      limit: 18,
+      limit: 24,
     })
       .then((res) => {
         if (!isCancelled) {
@@ -45,47 +62,95 @@ export default function DiscoverPage() {
     return () => {
       isCancelled = true;
     };
-  }, [searchQuery, selectedGenre, page]);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1);
-  };
+  }, [searchQuery, selectedGenre, selectedLanguage, page]);
 
   return (
-    <div className="discover-segment-view">
-      {/* ── Hero Banner ── */}
-      <section className="hero-card">
+    <div className="section-container">
+      {/* Hero Card */}
+      <section className="hero-card" style={{ marginBottom: 32 }}>
         <div className="hero-ambient-glow" />
-        <div className="hero-inner">
+        <div className="hero-inner" style={{ position: "relative", zIndex: 2 }}>
           <h1 className="hero-brand-title">Discover</h1>
-          <p className="hero-subtitle">Explore the music catalog and filter by audio genres.</p>
+          <p className="hero-subtitle">
+            Explore {total.toLocaleString()} tracks across artists, lyrics, and languages.
+          </p>
 
-          <form onSubmit={handleSearchSubmit} className="hero-search-bar">
-            <svg className="search-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="11" cy="11" r="7" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
+          <div className="hero-search-bar" style={{ maxWidth: 540 }}>
+            <Search
+              size={18}
+              style={{
+                position: "absolute",
+                left: 18,
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "var(--text-muted)",
+              }}
+            />
             <input
               type="text"
               className="search-input-field"
-              placeholder="Search by title, artist, or album..."
+              style={{ paddingLeft: 46 }}
+              placeholder="Search by title, artist, or lyrics..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 setPage(1);
               }}
             />
-            <button type="submit" className="btn-accent-theme">
-              Search
-            </button>
-          </form>
+          </div>
+        </div>
+      </section>
 
-          {/* Genre Chips */}
-          <div className="chips-container">
+      {/* Real Language Filter (Only languages present in DB) */}
+      {languages.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, fontSize: "0.82rem", color: "var(--text-secondary)", fontWeight: 600 }}>
+            <Globe size={14} style={{ color: "var(--accent-color)" }} />
+            <span>Language:</span>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button
               type="button"
-              className={`chip-item ${selectedGenre === "" ? "active" : ""}`}
+              className={`filter-pill ${selectedLanguage === "" ? "active" : ""}`}
+              onClick={() => {
+                setSelectedLanguage("");
+                setPage(1);
+              }}
+            >
+              All Languages
+            </button>
+            {languages.map((lang) => (
+              <button
+                key={lang}
+                type="button"
+                className={`filter-pill ${selectedLanguage === lang ? "active" : ""}`}
+                onClick={() => {
+                  if (lang.toLowerCase() === "tamil") {
+                    router.push("/tamil-music");
+                  } else {
+                    setSelectedLanguage(lang);
+                    setPage(1);
+                  }
+                }}
+              >
+                {lang}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Real Genre Filter (Only genres present in DB) */}
+      {genres.length > 0 && (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, fontSize: "0.82rem", color: "var(--text-secondary)", fontWeight: 600 }}>
+            <Music2 size={14} style={{ color: "var(--accent-color)" }} />
+            <span>Genre:</span>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button
+              type="button"
+              className={`filter-pill ${selectedGenre === "" ? "active" : ""}`}
               onClick={() => {
                 setSelectedGenre("");
                 setPage(1);
@@ -97,7 +162,7 @@ export default function DiscoverPage() {
               <button
                 key={g}
                 type="button"
-                className={`chip-item ${selectedGenre === g ? "active" : ""}`}
+                className={`filter-pill ${selectedGenre === g ? "active" : ""}`}
                 onClick={() => {
                   setSelectedGenre(g);
                   setPage(1);
@@ -108,89 +173,104 @@ export default function DiscoverPage() {
             ))}
           </div>
         </div>
-      </section>
+      )}
 
-      {/* ── Catalog Grid Section ── */}
-      <section className="catalog-section">
-        {loading ? (
-          <div className="catalog-empty-card">
-            <div className="empty-cylinder-icon">
-              <svg viewBox="0 0 24 24">
-                <ellipse cx="12" cy="5" rx="9" ry="3" />
-                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
-                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
-              </svg>
-            </div>
-            <h3 className="catalog-empty-title">Loading tracks...</h3>
+      {/* Results Header */}
+      <div className="section-header" style={{ marginBottom: 16 }}>
+        <h2 className="section-title">Tracks ({total.toLocaleString()})</h2>
+        {totalPages > 1 && (
+          <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+            Page {page} of {totalPages}
+          </span>
+        )}
+      </div>
+
+      {/* Songs Grid */}
+      {loading ? (
+        <div style={{ padding: "60px 0", textAlign: "center", color: "var(--text-secondary)" }}>
+          <div className="animate-spin" style={{ display: "inline-block", marginBottom: 12 }}>
+            <Disc3 size={32} style={{ color: "var(--accent-color)" }} />
           </div>
-        ) : songs.length === 0 ? (
-          <div className="catalog-empty-card">
-            <div className="empty-cylinder-icon">
-              <svg viewBox="0 0 24 24">
-                <ellipse cx="12" cy="5" rx="9" ry="3" />
-                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
-                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
-              </svg>
-            </div>
-            <h3 className="catalog-empty-title">No songs found</h3>
-            <p className="catalog-empty-desc">
-              Try adjusting your search query or{" "}
+          <div>Loading catalog tracks...</div>
+        </div>
+      ) : songs.length > 0 ? (
+        <>
+          <div className="songs-grid">
+            {songs.map((song) => (
+              <SongCard
+                key={song.song_id}
+                song={song}
+                onViewDetails={(s) => setSelectedSongDetails(s)}
+              />
+            ))}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 12,
+                marginTop: 36,
+              }}
+            >
               <button
                 type="button"
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedGenre("");
-                  setPage(1);
-                }}
-                className="accent-theme-link"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className="filter-pill"
+                style={{ opacity: page <= 1 ? 0.4 : 1, cursor: page <= 1 ? "not-allowed" : "pointer" }}
               >
-                reset filters
+                Previous
               </button>
-            </p>
-          </div>
-        ) : (
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
-              <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "#fff" }}>
-                Found {total} Tracks {selectedGenre && `• ${selectedGenre}`}
-              </h2>
+              <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                Page {page} of {totalPages}
+              </span>
+              <button
+                type="button"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                className="filter-pill"
+                style={{
+                  opacity: page >= totalPages ? 0.4 : 1,
+                  cursor: page >= totalPages ? "not-allowed" : "pointer",
+                }}
+              >
+                Next
+              </button>
             </div>
-
-            <div className="songs-grid-wrapper">
-              {songs.map((song) => (
-                <SongCard key={song.song_id} song={song} />
-              ))}
-            </div>
-
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "16px", marginTop: "32px" }}>
-                <button
-                  type="button"
-                  className="btn-secondary-pill"
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  style={{ opacity: page <= 1 ? 0.4 : 1, cursor: page <= 1 ? "default" : "pointer" }}
-                >
-                  ← Previous
-                </button>
-                <span style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>
-                  Page {page} of {totalPages}
-                </span>
-                <button
-                  type="button"
-                  className="btn-secondary-pill"
-                  disabled={page >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  style={{ opacity: page >= totalPages ? 0.4 : 1, cursor: page >= totalPages ? "default" : "pointer" }}
-                >
-                  Next →
-                </button>
-              </div>
-            )}
+          )}
+        </>
+      ) : (
+        <div className="empty-catalog-card">
+          <div className="empty-icon-box">
+            <Music2 size={32} />
           </div>
-        )}
-      </section>
+          <h3 className="empty-title">No matching songs found</h3>
+          <p className="empty-desc">
+            Try adjusting your search query, language, or genre filters.
+          </p>
+        </div>
+      )}
+
+      {/* Song Details Modal */}
+      {selectedSongDetails && (
+        <SongDetailsModal
+          song={selectedSongDetails}
+          onClose={() => setSelectedSongDetails(null)}
+          onSelectSong={(newSong) => setSelectedSongDetails(newSong)}
+        />
+      )}
     </div>
+  );
+}
+
+export default function DiscoverPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 40, color: "#94a3b8" }}>Loading Discover...</div>}>
+      <DiscoverContent />
+    </Suspense>
   );
 }

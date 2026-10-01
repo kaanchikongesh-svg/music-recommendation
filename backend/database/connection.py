@@ -19,7 +19,6 @@ def get_database_url() -> Optional[str]:
     """Returns DATABASE_URL from environment if configured."""
     url = os.getenv("DATABASE_URL")
     if url and url.strip():
-        # Handle potential postgres:// -> postgresql:// URL syntax for SQLAlchemy/psycopg2
         if url.startswith("postgres://"):
             url = "postgresql://" + url[len("postgres://"):]
         return url.strip()
@@ -114,7 +113,6 @@ def query_all(sql: str, params: tuple = (), db_path: Union[str, Path] = DEFAULT_
             elif hasattr(r, "keys"):
                 results.append({k: r[k] for k in r.keys()})
             else:
-                # Raw tuple with column descriptions
                 col_names = [desc[0] for desc in cursor.description]
                 results.append(dict(zip(col_names, r)))
         return results
@@ -160,13 +158,37 @@ def init_db(db_path: Union[str, Path] = DEFAULT_DB_PATH) -> None:
                 song_id VARCHAR(255) UNIQUE NOT NULL,
                 song_name TEXT NOT NULL,
                 artist TEXT NOT NULL,
+                lyrics TEXT,
+                source_link TEXT,
+                source_dataset VARCHAR(100) DEFAULT 'spotify_millsongdata',
                 album TEXT,
                 genre TEXT,
                 language TEXT,
-                year INTEGER
+                year INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """
         )
+
+        # Indexes for high performance
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_songs_song_id ON songs(song_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_songs_artist ON songs(artist);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_songs_song_name ON songs(song_name);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_songs_language ON songs(language);")
+
+        # Auto-migrate SQLite columns if table was created in an earlier version
+        if not is_pg:
+            cursor.execute("PRAGMA table_info(songs);")
+            existing_cols = {row["name"] for row in cursor.fetchall()}
+            if "lyrics" not in existing_cols:
+                cursor.execute("ALTER TABLE songs ADD COLUMN lyrics TEXT;")
+            if "source_link" not in existing_cols:
+                cursor.execute("ALTER TABLE songs ADD COLUMN source_link TEXT;")
+            if "source_dataset" not in existing_cols:
+                cursor.execute("ALTER TABLE songs ADD COLUMN source_dataset VARCHAR(100) DEFAULT 'spotify_millsongdata';")
+            if "updated_at" not in existing_cols:
+                cursor.execute("ALTER TABLE songs ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;")
 
         cursor.execute(
             f"""

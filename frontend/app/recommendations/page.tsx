@@ -10,6 +10,7 @@ export default function ForYouPage() {
   const [selectedSeedId, setSelectedSeedId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [recType, setRecType] = useState<string>("personalized");
+  const [languageMode, setLanguageMode] = useState<"same" | "any">("same");
 
   useEffect(() => {
     apiListSongs({ limit: 10 })
@@ -18,13 +19,13 @@ export default function ForYouPage() {
   }, []);
 
   useEffect(() => {
-    fetchRecommendations(selectedSeedId);
-  }, [selectedSeedId]);
+    fetchRecommendations(selectedSeedId, languageMode);
+  }, [selectedSeedId, languageMode]);
 
-  const fetchRecommendations = async (seedId?: string) => {
+  const fetchRecommendations = async (seedId?: string, mode: "same" | "any" = languageMode) => {
     setLoading(true);
     try {
-      const res = await apiRecommendations(seedId || undefined, 12);
+      const res = await apiRecommendations(seedId || undefined, 12, mode);
       setRecommendations(res.recommendations || []);
       setRecType(res.type || "personalized");
     } catch {
@@ -51,7 +52,7 @@ export default function ForYouPage() {
               className="btn-accent-theme"
               onClick={() => {
                 setSelectedSeedId("");
-                fetchRecommendations();
+                fetchRecommendations("");
               }}
             >
               ⚡ Personalized Taste Radar
@@ -68,6 +69,44 @@ export default function ForYouPage() {
             >
               🎲 Surprise Me (Random Seed)
             </button>
+
+            {/* Language Recommendation Mode Toggle */}
+            <div style={{ display: "inline-flex", background: "rgba(255,255,255,0.06)", borderRadius: "20px", padding: "3px", border: "1px solid rgba(255,255,255,0.12)", marginLeft: "auto" }}>
+              <button
+                type="button"
+                style={{
+                  background: languageMode === "same" ? "var(--signature-accent, #6366f1)" : "transparent",
+                  color: languageMode === "same" ? "#fff" : "var(--text-secondary)",
+                  border: "none",
+                  borderRadius: "16px",
+                  padding: "6px 14px",
+                  fontSize: "0.8rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease"
+                }}
+                onClick={() => setLanguageMode("same")}
+              >
+                🌐 Same Language Mode
+              </button>
+              <button
+                type="button"
+                style={{
+                  background: languageMode === "any" ? "var(--signature-accent, #6366f1)" : "transparent",
+                  color: languageMode === "any" ? "#fff" : "var(--text-secondary)",
+                  border: "none",
+                  borderRadius: "16px",
+                  padding: "6px 14px",
+                  fontSize: "0.8rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease"
+                }}
+                onClick={() => setLanguageMode("any")}
+              >
+                🔀 Cross-Language Mode
+              </button>
+            </div>
           </div>
 
           {/* Seed track selection chips */}

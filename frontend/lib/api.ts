@@ -38,6 +38,10 @@ export interface Song {
   genre?: string;
   language?: string;
   year?: number;
+  lyrics?: string;
+  source_link?: string;
+  similarity_score?: number;
+  similarity_reason?: string;
   popularity?: number;
   danceability?: number;
   energy?: number;
@@ -53,9 +57,14 @@ export interface Recommendation {
   song_id: string;
   song_name: string;
   artist: string;
+  album?: string;
   genre?: string;
+  language?: string;
+  year?: number;
   score?: number;
+  similarity_score?: number;
   reason?: string;
+  similarity_reason?: string;
 }
 
 export interface User {
@@ -125,6 +134,7 @@ export const apiListSongs = (params?: {
   query?: string;
   genre?: string;
   artist?: string;
+  language?: string;
   page?: number;
   limit?: number;
 }) => {
@@ -132,6 +142,7 @@ export const apiListSongs = (params?: {
   if (params?.query) q.set("query", params.query);
   if (params?.genre) q.set("genre", params.genre);
   if (params?.artist) q.set("artist", params.artist);
+  if (params?.language) q.set("language", params.language);
   if (params?.page) q.set("page", String(params.page));
   if (params?.limit) q.set("limit", String(params.limit));
   return apiFetch<SongsPage>(`/api/songs?${q.toString()}`);
@@ -150,6 +161,26 @@ export const apiGetSong = (songId: string) =>
 export const apiGenres = () =>
   apiFetch<{ genres: string[] }>("/api/genres");
 
+export const apiLanguages = () =>
+  apiFetch<{ languages: string[] }>("/api/languages");
+
+export const apiTamilSongs = (
+  pageOrParams: number | { page?: number; limit?: number; query?: string; artist?: string } = 1,
+  limit = 24
+) => {
+  const q = new URLSearchParams();
+  if (typeof pageOrParams === "object") {
+    if (pageOrParams.page) q.set("page", String(pageOrParams.page));
+    if (pageOrParams.limit) q.set("limit", String(pageOrParams.limit));
+    if (pageOrParams.query) q.set("query", pageOrParams.query);
+    if (pageOrParams.artist) q.set("artist", pageOrParams.artist);
+  } else {
+    q.set("page", String(pageOrParams));
+    q.set("limit", String(limit));
+  }
+  return apiFetch<SongsPage>(`/api/tamil?${q.toString()}`);
+};
+
 export const apiFeatured = (limit = 6) =>
   apiFetch<{ featured: Song[] }>(`/api/featured?limit=${limit}`);
 
@@ -158,17 +189,28 @@ export const apiCatalogStats = () =>
 
 // ── Recommendations ─────────────────────────────────────────────────────────
 
-export const apiRecommendations = (songId?: string, limit = 6) => {
-  const q = new URLSearchParams({ limit: String(limit) });
+export const apiRecommendations = (
+  songId?: string,
+  limit = 6,
+  languageMode: "same" | "any" = "same"
+) => {
+  const q = new URLSearchParams({
+    limit: String(limit),
+    language_mode: languageMode,
+  });
   if (songId) q.set("song_id", songId);
-  return apiFetch<{ recommendations: Recommendation[]; type: string }>(
+  return apiFetch<{ recommendations: Recommendation[]; type: string; language_mode?: string }>(
     `/api/recommendations?${q.toString()}`
   );
 };
 
-export const apiSeedRecommendations = (songId: string, limit = 6) =>
-  apiFetch<{ recommendations: Recommendation[] }>(
-    `/api/recommendations/seed/${songId}?limit=${limit}`
+export const apiSeedRecommendations = (
+  songId: string,
+  limit = 6,
+  languageMode: "same" | "any" = "same"
+) =>
+  apiFetch<{ recommendations: Recommendation[]; language_mode?: string }>(
+    `/api/recommendations/seed/${songId}?limit=${limit}&language_mode=${languageMode}`
   );
 
 // ── Favorites ───────────────────────────────────────────────────────────────

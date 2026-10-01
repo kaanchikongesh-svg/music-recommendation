@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-# Ensure project root and backend dir are in sys.path for serverless execution
+# Reload trigger: 2026-09-30T18:50:30
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = BASE_DIR.parent
 for p in [str(PROJECT_ROOT), str(BASE_DIR)]:

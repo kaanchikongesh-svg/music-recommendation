@@ -60,9 +60,12 @@ def get_or_train_recommender(
             else:
                 raw_res = load_dataset()
                 if raw_res.is_valid and raw_res.df is not None:
-                    prep_res = preprocess_dataset(raw_res.df, save_processed=True)
-                    if prep_res.is_success and prep_res.df is not None:
-                        _CACHED_DATAFRAME = prep_res.df
+                    if "combined_features" in raw_res.df.columns:
+                        _CACHED_DATAFRAME = raw_res.df
+                    else:
+                        prep_res = preprocess_dataset(raw_res.df, save_processed=True)
+                        if prep_res.is_success and prep_res.df is not None:
+                            _CACHED_DATAFRAME = prep_res.df
             return _RECOMMENDER_INSTANCE, _CACHED_DATAFRAME
 
     # Train from scratch
@@ -96,31 +99,31 @@ def recommend_songs(
     song_id: str,
     df: Optional[pd.DataFrame] = None,
     n_recommendations: int = 10,
+    language_mode: str = "same",
     model_path: Union[str, Path] = DEFAULT_MODEL_PATH,
 ) -> List[Dict[str, Any]]:
-    """Generates content-based song recommendations for a specific song ID.
-
-    Args:
-        song_id: Query song identifier.
-        df: Optional dataframe of the catalog.
-        n_recommendations: Number of recommendations to return.
-        model_path: Path to serialized model.
-
-    Returns:
-        List of recommended song dictionaries.
-    """
+    """Generates content-based song recommendations for a specific song ID."""
     recommender, active_df = get_or_train_recommender(df=df, model_path=model_path)
     if recommender is None or active_df is None or active_df.empty:
         return []
 
     candidates = recommender.get_similar_indices(
-        query_song_id=str(song_id), top_k=n_recommendations * 5
+        query_song_id=str(song_id), top_k=n_recommendations * 6
     )
+
+    # Detect seed song language
+    seed_lang = None
+    if "language" in active_df.columns:
+        match = active_df[active_df["song_id"].astype(str) == str(song_id)]
+        if not match.empty:
+            seed_lang = match.iloc[0].get("language")
 
     return rank_and_enrich_recommendations(
         candidates=candidates,
         df=active_df,
         query_song_id=str(song_id),
+        preferred_language=seed_lang,
+        language_mode=language_mode,
         n_recommendations=n_recommendations,
     )
 

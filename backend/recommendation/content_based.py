@@ -39,11 +39,11 @@ class ContentBasedRecommender:
         self.song_ids = df["song_id"].astype(str).tolist()
         self.song_id_to_idx = {sid: idx for idx, sid in enumerate(self.song_ids)}
 
-        # 1. Fit TF-IDF on combined_features
+        # 1. Fit TF-IDF on combined_features (fast, high-dimensional unigrams supporting Unicode & Tamil)
         self.vectorizer = TfidfVectorizer(
-            stop_words="english",
-            max_features=10_000,
-            ngram_range=(1, 2),
+            token_pattern=r"(?u)\b\w+\b",
+            max_features=25_000,
+            ngram_range=(1, 1),
             sublinear_tf=True,
         )
         self.tfidf_matrix = self.vectorizer.fit_transform(df["combined_features"].fillna(""))
@@ -106,10 +106,16 @@ class ContentBasedRecommender:
         else:
             total_sim = text_sim
 
-        # Get sorted candidate indices (excluding self)
-        ranked_indices = np.argsort(-total_sim)
+        # Fast candidate ranking with robust small/large dataset handling
+        if len(total_sim) <= top_k + 15:
+            sorted_top = np.argsort(-total_sim)
+        else:
+            top_n = min(top_k + 10, len(total_sim) - 1)
+            partitioned = np.argpartition(-total_sim, top_n)[:top_n]
+            sorted_top = partitioned[np.argsort(-total_sim[partitioned])]
+
         candidates = []
-        for i in ranked_indices:
+        for i in sorted_top:
             if i == idx:
                 continue
             candidates.append((int(i), float(total_sim[i])))
@@ -138,7 +144,6 @@ class ContentBasedRecommender:
 
         # Centroid of TF-IDF vectors
         user_tfidf_profile = self.tfidf_matrix[valid_indices].mean(axis=0)
-        # Convert matrix to array for cosine_similarity
         user_tfidf_profile = np.asarray(user_tfidf_profile)
         text_sim = cosine_similarity(user_tfidf_profile, self.tfidf_matrix).flatten()
 
@@ -150,9 +155,16 @@ class ContentBasedRecommender:
             total_sim = text_sim
 
         seed_set = set(valid_indices)
-        ranked_indices = np.argsort(-total_sim)
+        needed = top_k + len(seed_set)
+        if len(total_sim) <= needed + 15:
+            sorted_top = np.argsort(-total_sim)
+        else:
+            top_n = min(needed + 10, len(total_sim) - 1)
+            partitioned = np.argpartition(-total_sim, top_n)[:top_n]
+            sorted_top = partitioned[np.argsort(-total_sim[partitioned])]
+
         candidates = []
-        for i in ranked_indices:
+        for i in sorted_top:
             if i in seed_set:
                 continue
             candidates.append((int(i), float(total_sim[i])))

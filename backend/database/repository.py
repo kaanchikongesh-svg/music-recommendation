@@ -452,3 +452,89 @@ def get_user_stats(
         "total_likes": total_likes,
         "total_playlists": total_playlists,
     }
+
+
+def get_song_by_id(
+    song_id: str, db_path: Union[str, Path] = DEFAULT_DB_PATH
+) -> Optional[Dict[str, Any]]:
+    """Retrieves a single song record by song_id."""
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT id, song_id, song_name, artist, lyrics, source_link, source_dataset,
+               album, genre, language, year, created_at, updated_at
+        FROM songs
+        WHERE song_id = ?
+        """,
+        (str(song_id),),
+    )
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def bulk_upsert_songs(
+    songs_data: List[Dict[str, Any]],
+    batch_size: int = 2000,
+    db_path: Union[str, Path] = DEFAULT_DB_PATH,
+) -> int:
+    """Bulk upserts a list of song dictionary records safely into the database."""
+    if not songs_data:
+        return 0
+
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    is_pg = hasattr(conn, "autocommit") and not isinstance(conn, sqlite3.Connection)
+    cursor = conn.cursor()
+
+    upsert_sql = """
+    INSERT INTO songs (
+        song_id, song_name, artist, lyrics, source_link, source_dataset,
+        album, genre, language, year
+    ) VALUES (
+        ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?
+    )
+    ON CONFLICT(song_id) DO UPDATE SET
+        song_name=excluded.song_name,
+        artist=excluded.artist,
+        lyrics=excluded.lyrics,
+        source_link=excluded.source_link,
+        album=excluded.album,
+        genre=excluded.genre,
+        language=excluded.language,
+        year=excluded.year,
+        updated_at=CURRENT_TIMESTAMP
+    """
+    if is_pg:
+        upsert_sql = upsert_sql.replace("?", "%s")
+
+    records = []
+    for s in songs_data:
+        records.append((
+            str(s.get("song_id")),
+            str(s.get("song_name")),
+            str(s.get("artist")),
+            s.get("lyrics"),
+            s.get("source_link"),
+            s.get("source_dataset", "spotify_millsongdata"),
+            s.get("album"),
+            s.get("genre"),
+            s.get("language"),
+            s.get("year"),
+        ))
+
+    total_inserted = 0
+    try:
+        for i in range(0, len(records), batch_size):
+            batch = records[i:i + batch_size]
+            cursor.executemany(upsert_sql, batch)
+            total_inserted += len(batch)
+        conn.commit()
+    finally:
+        conn.close()
+
+    return total_inserted
+

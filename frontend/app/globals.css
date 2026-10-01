@@ -756,3 +756,72 @@ a {
     font-size: 2.8rem;
   }
 }
+
+/* ── 3D Visual Theme & Depth Effects ──────────────────────────────────── */
+[data-visual-theme="3d"] {
+  --bg-app: #040508;
+  --bg-card: #090c16;
+  --bg-card-hover: #101526;
+  --border-card: rgba(255, 255, 255, 0.08);
+}
+
+[data-visual-theme="3d"] .perspective-1000 {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+
+[data-visual-theme="3d"] .song-card-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, border-color 0.3s ease;
+  will-change: transform;
+}
+
+[data-visual-theme="3d"] .song-card-3d:hover {
+  transform: perspective(1000px) rotateX(5deg) rotateY(-4deg) translateY(-8px) scale3d(1.02, 1.02, 1.02);
+  box-shadow: 0 25px 45px -12px var(--accent-glow), 0 0 25px 0 rgba(255, 255, 255, 0.06);
+  border-color: var(--accent-border);
+}
+
+[data-visual-theme="3d"] .artwork-3d {
+  transform: translateZ(25px);
+  box-shadow: 0 14px 28px -6px rgba(0, 0, 0, 0.7), 0 0 18px -4px var(--accent-glow);
+  transition: transform 0.3s ease;
+}
+
+[data-visual-theme="3d"] .hero-3d-glow {
+  background: radial-gradient(circle at 50% 20%, var(--accent-soft) 0%, transparent 70%);
+  filter: drop-shadow(0 20px 30px var(--accent-glow));
+}
+
+[data-visual-theme="3d"] .rotating-disc {
+  animation: spinVinyl 12s linear infinite;
+}
+
+@keyframes spinVinyl {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Reduced Motion Preference ────────────────────────────────────────── */
+[data-motion="reduced"],
+[data-motion="reduced"] * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transform: none !important;
+  }
+}
+

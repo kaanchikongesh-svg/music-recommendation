@@ -1,4 +1,4 @@
-"""Data models and type definitions for SQLite database entities."""
+"""Data models and type definitions for database entities."""
 
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -24,10 +24,15 @@ class Song:
     song_id: str = ""
     song_name: str = ""
     artist: str = ""
+    lyrics: Optional[str] = None
+    source_link: Optional[str] = None
+    source_dataset: Optional[str] = "spotify_millsongdata"
     album: Optional[str] = None
     genre: Optional[str] = None
     language: Optional[str] = None
     year: Optional[int] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
 
 
 @dataclass
